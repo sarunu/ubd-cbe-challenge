@@ -1,0 +1,587 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>UbD–CBE Challenge — v1.1 Connected</title>
+<style>
+:root{
+  --bg:#f6f3ed;
+  --panel:#fffdf9;
+  --ink:#24312d;
+  --muted:#66736f;
+  --line:#d9ddd8;
+  --accent:#4c7568;
+  --accent2:#dfeae5;
+  --warn:#8b633d;
+  --warnbg:#f7eee3;
+  --good:#3d6d55;
+  --goodbg:#e8f2ec;
+  --shadow:0 10px 28px rgba(45,56,51,.08);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Tahoma,"Noto Sans Thai",system-ui,sans-serif;line-height:1.55}
+button,input{font:inherit}
+button{cursor:pointer}
+.shell{max-width:1100px;margin:0 auto;padding:18px}
+.topbar{display:none;position:sticky;top:0;z-index:50;background:rgba(246,243,237,.96);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+body.playing .topbar{display:block}
+body.playing .hero{display:none!important}
+.topbar-inner{max-width:1100px;margin:auto;padding:12px 18px;display:flex;gap:16px;align-items:center;justify-content:space-between}.topbar-left{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.review-return{display:none}.reviewing .review-return{display:inline-flex}.reviewing .brand:after{content:" · โหมดทบทวน";color:var(--warn);font-size:12px;font-weight:700}.review-banner{display:none;background:var(--warnbg);border:1px solid #ead4b9;color:#6c5239;border-radius:12px;padding:9px 12px;margin:0 auto 10px;max-width:1100px}.reviewing .review-banner{display:block}
+.brand{font-weight:700;letter-spacing:.2px}
+.progress{display:flex;align-items:center;gap:7px;font-size:14px;color:var(--muted);flex-wrap:wrap;justify-content:flex-end}
+.dot{width:9px;height:9px;border-radius:99px;background:#c8ceca;display:inline-block}.dot.on{background:var(--accent)}.dot.done{background:var(--good)}
+main{min-height:calc(100vh - 74px)}
+.screen{display:none!important;animation:fade .18s ease}.screen.active{display:block!important}.screen.active.hero{display:grid!important}@keyframes fade{from{opacity:.2;transform:translateY(3px)}to{opacity:1;transform:none}}
+.hero{min-height:74vh;display:grid;place-items:center;text-align:center}.hero-card{max-width:760px;padding:52px 34px;background:var(--panel);border:1px solid var(--line);border-radius:26px;box-shadow:var(--shadow)}
+.kicker{font-size:14px;font-weight:700;color:var(--accent);letter-spacing:.6px;text-transform:uppercase}.hero h1{font-size:clamp(34px,6vw,58px);line-height:1.05;margin:10px 0 14px}.hero h2{font-size:clamp(18px,3vw,26px);font-weight:500;margin:0 0 14px}.subtle{color:var(--muted)}
+.btn{border:0;border-radius:14px;padding:12px 18px;background:var(--accent);color:white;font-weight:700;box-shadow:none}.btn:hover{filter:brightness(.96)}.btn.secondary{background:white;color:var(--ink);border:1px solid var(--line)}.btn.ghost{background:transparent;color:var(--accent);border:1px dashed #afc0b8}.btn.small{padding:8px 12px;border-radius:10px;font-size:14px}.btn:disabled{opacity:.45;cursor:not-allowed}
+.stage-wrap{padding:14px 0 28px}.stage-head{margin:0 0 12px}.stage-head h1{font-size:clamp(24px,3.2vw,34px);margin:2px 0 4px;line-height:1.2}.stage-head p{margin:0;color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:16px;box-shadow:var(--shadow)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.grid5{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.info-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px}.info-card h3{margin:0 0 6px;font-size:18px}.info-card p{margin:0;color:var(--muted)}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:11px;box-shadow:0 4px 12px rgba(0,0,0,.035);transition:.15s;min-height:82px}.card.selectable:hover,.card.draggable:hover{border-color:#a9bbb4;transform:translateY(-1px)}.card.selected{outline:3px solid rgba(76,117,104,.22);border-color:var(--accent)}
+.card-title{font-weight:700;margin-bottom:5px}.card-note{font-size:14px;color:var(--muted)}
+.dropzone{min-height:96px;border:2px dashed #bfc9c4;border-radius:16px;padding:10px;background:#fbfcfa;display:flex;flex-direction:column;gap:7px}.dropzone.ready{border-color:var(--accent);background:var(--accent2)}.dropzone h3{margin:0 0 2px;text-align:center;font-size:15px;line-height:1.3}.dropzone h3 small{display:block;font-size:12px;color:var(--muted);font-weight:500;margin-top:2px}.dropzone .placed{background:white;border:1px solid var(--line);border-radius:10px;padding:8px;font-size:13px;line-height:1.35}
+.bank{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:9px}.bank .card{width:100%}
+.actions{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:13px;flex-wrap:wrap}.actions-right{display:flex;gap:10px;flex-wrap:wrap}.hintbox,.feedback{margin-top:16px;border-radius:15px;padding:14px 16px;display:none}.hintbox.show,.feedback.show{display:block}.hintbox{background:var(--warnbg);border:1px solid #ead4b9;color:#6c5239}.feedback.good{display:block;background:var(--goodbg);border:1px solid #c9decf;color:#315843}.feedback.warn{display:block;background:var(--warnbg);border:1px solid #ead4b9;color:#6c5239}
+.choice-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.choice-card{position:relative;background:#fff;border:1px solid var(--line);border-radius:15px;padding:13px;color:var(--ink);min-height:150px;display:flex;flex-direction:column;gap:9px;cursor:pointer;transition:.15s}.choice-card:hover{border-color:#a9bbb4;transform:translateY(-1px)}.choice-card.selected{border:2px solid var(--accent);background:#f7fbf9;box-shadow:0 0 0 3px rgba(76,117,104,.10)}.choice-text{font-weight:700;line-height:1.45;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}.option-badge{font-size:12px;color:var(--muted);font-weight:700}.detail-btn{margin-top:auto;align-self:flex-start;border:1px solid var(--line);background:#fff;color:var(--accent);border-radius:9px;padding:6px 10px;font-size:13px;font-weight:700}.detail-btn:hover{background:var(--accent2)}
+.pill-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.pill{border:1px solid var(--line);background:white;color:var(--ink);border-radius:999px;padding:10px 17px}.pill.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.big-card{max-width:820px;margin:auto}.big-card blockquote{margin:0;font-size:19px;background:#fff;border:1px solid var(--line);padding:18px;border-radius:16px}
+.counter{text-align:right;color:var(--muted);font-size:14px;margin-bottom:8px}
+.order-list{display:grid;gap:10px}.order-item{background:#fff;border:1px solid var(--line);border-radius:16px;padding:13px;display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center}.handle{font-size:22px;color:#8a9691;cursor:grab}.order-actions{display:flex;gap:6px}.order-actions button{border:1px solid var(--line);background:#fff;border-radius:9px;padding:5px 9px}
+.system-map{display:grid;place-items:center;gap:8px;text-align:center;padding:18px}.node{background:white;border:1px solid var(--line);border-radius:14px;padding:11px 16px;min-width:220px}.arrow{font-size:24px;color:var(--accent)}.split{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;width:min(780px,100%)}
+.complete{padding:30px;text-align:center}.complete h2{font-size:30px;margin:4px 0 10px}.check{font-size:46px}.summary-columns{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:18px 0}.summary-box{background:#fff;border:1px solid var(--line);border-radius:17px;padding:16px;text-align:left}.summary-box strong{display:block;margin-bottom:6px}.summary-box span{color:var(--muted);font-size:14px}
+.modal{position:fixed;inset:0;background:rgba(28,35,32,.5);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}.modal.show{display:flex}.modal-card{max-width:760px;max-height:80vh;overflow:auto;background:var(--panel);border-radius:22px;padding:22px;box-shadow:0 30px 80px rgba(0,0,0,.2)}.modal-top{display:flex;justify-content:space-between;gap:20px;align-items:start}.modal-top h2{margin-top:0}.x{border:0;background:transparent;font-size:25px;color:var(--muted)}
+.tag{display:inline-block;padding:4px 9px;border-radius:999px;background:var(--accent2);color:#355a4e;font-size:13px;font-weight:700;margin-bottom:7px}
+.match-label{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:700;margin-bottom:5px}.detail-list{margin:8px 0 0;padding-left:22px}.detail-list li{margin:8px 0}.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0 16px}.stat-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}.stat-card strong{display:block;font-size:24px;line-height:1.2}.stat-card span{font-size:12px;color:var(--muted)}.stats-table{width:100%;border-collapse:collapse;font-size:13px}.stats-table th,.stats-table td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left}.stats-table th{color:var(--muted);font-weight:700}.stats-table td.num,.stats-table th.num{text-align:center}.stats-note{margin-top:12px;color:var(--muted);font-size:13px}
+
+.inline-details{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+.inline-details summary{display:inline-block;cursor:pointer;border:1px solid var(--line);background:#fff;border-radius:10px;padding:7px 11px;font-size:14px;font-weight:700;color:var(--accent);list-style:none}
+.inline-details summary::-webkit-details-marker{display:none}
+.inline-detail-body{margin-top:10px;padding:11px 12px;background:#f8faf8;border:1px solid #e3e8e4;border-radius:11px;font-size:14px;color:var(--ink)}
+.inline-detail-body ul{margin:6px 0 0;padding-left:22px}.inline-detail-body li{margin:5px 0}
+.playing-note{font-size:12px;color:var(--muted);font-weight:500}
+.order-main{display:flex;flex-direction:column;gap:7px}.order-detail{align-self:flex-start;border:1px solid var(--line);background:#fff;color:var(--accent);border-radius:9px;padding:5px 9px;font-size:12px;font-weight:700}.order-detail:hover{background:var(--accent2)}
+@media(min-width:901px){.split-layout>.sidebar-stack{position:sticky;top:78px}}
+.split-layout{display:grid;grid-template-columns:320px minmax(0,1fr);gap:16px;align-items:start}.sidebar-stack{display:grid;gap:12px}.ref-card{background:#fcfdfb;border:1px solid var(--line);border-radius:16px;padding:14px}.ref-card h3{margin:0 0 8px;font-size:17px;line-height:1.35}.ref-card p,.ref-card li{font-size:14px}.ref-card ul{margin:7px 0 0;padding-left:20px}.ref-card .mini{font-size:13px;color:var(--muted)}.ref-card .fulltext{font-size:14px;line-height:1.6}.rubric-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}.rubric-table th,.rubric-table td{border:1px solid var(--line);padding:8px 9px;vertical-align:top;text-align:left}.rubric-table th{background:#f4f8f6;font-size:13px}.rubric-table .rowhead{background:#fafcfb;font-weight:700;min-width:120px}.rubric-note{margin-top:10px;color:var(--muted);font-size:13px}
+
+@media(max-width:900px){.choice-list{grid-template-columns:repeat(2,minmax(0,1fr))}.grid5{grid-template-columns:repeat(3,1fr)}.stats-grid{grid-template-columns:repeat(2,1fr)}.split-layout{grid-template-columns:1fr}}
+@media(max-width:800px){.grid3,.summary-columns{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}.grid5{grid-template-columns:1fr 1fr}.topbar-inner{align-items:flex-start}.progress{font-size:12px}.dropzone{min-height:82px}.bank{grid-template-columns:1fr}.split{grid-template-columns:1fr}.split .arrow{transform:rotate(90deg)}.hero-card{padding:34px 18px}.shell{padding:10px}.panel{padding:13px}.choice-list{grid-template-columns:1fr}.choice-card{min-height:0}.order-item{grid-template-columns:1fr auto}.handle{display:none}.stats-grid{grid-template-columns:1fr 1fr}}
+
+.player-form{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px auto 0;max-width:620px;text-align:left}.field label{display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:5px}.field input{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 12px;background:#fff;color:var(--ink)}.field input:focus{outline:3px solid rgba(76,117,104,.12);border-color:var(--accent)}.form-note{font-size:12px;color:var(--muted);margin:8px 0 0;text-align:center}.submit-status{max-width:720px;margin:14px auto 0;border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:#fafcfb;text-align:left}.submit-status strong{display:block;margin-bottom:3px}.submit-status.ok{background:var(--goodbg);border-color:#c9decf;color:#315843}.submit-status.warn{background:var(--warnbg);border-color:#ead4b9;color:#6c5239}.submit-status.loading{background:#f5f7f6}.participant-chip{font-size:13px;color:var(--muted);margin-top:8px}
+@media(max-width:800px){.player-form{grid-template-columns:1fr}}
+
+/* AI Advisor handoff */
+.advisor-card{max-width:900px;margin:18px auto 4px;padding:18px 20px;background:linear-gradient(135deg,#eef6f2,#f8fbf9);border:1px solid #c9ded4;border-radius:18px;text-align:left}
+.advisor-card h3{margin:0 0 6px;color:#315843;font-size:20px}
+.advisor-card p{margin:0 0 12px;color:var(--muted)}
+.advisor-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn.advisor{background:#315f52}
+.handoff-status{display:none;margin-top:10px;padding:10px 12px;border-radius:12px;font-size:13px}
+.handoff-status.show{display:block}
+.handoff-status.ok{background:var(--goodbg);border:1px solid #c9decf;color:#315843}
+.handoff-status.warn{background:var(--warnbg);border:1px solid #ead4b9;color:#6c5239}
+@media(max-width:800px){.advisor-actions .btn{width:100%}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">UbD–CBE Challenge <span class="playing-note">v1.1 Connected</span></div>
+    <div class="progress" id="globalProgress"></div>
+  </div>
+</header>
+<div class="review-banner">กำลังทบทวนหน้าที่ทำผ่านแล้ว ข้อมูลและคำตอบเดิมยังคงอยู่ กด “กลับหน้าปัจจุบัน →” เพื่อกลับไปทำเกมต่อ</div>
+<main class="shell">
+  <section id="welcome" class="screen active hero">
+    <div class="hero-card">
+      <div class="kicker">Learning Game</div>
+      <h1>UbD–CBE Challenge</h1>
+      <h2>จากผลลัพธ์ → หลักฐาน → เส้นทางการเรียนรู้</h2>
+      <p class="subtle">หน่วยตัวอย่าง: คณิตศาสตร์ ป.3 “ออกแบบแปลงผักของเรา”</p>
+      <p>ลองคิด ทดลอง และปรับคำตอบได้ <strong>ไม่มีการหักคะแนน</strong></p>
+      <p class="playing-note">เล่นได้ทั้งการลาก–วางและการแตะเลือก · ใช้ปุ่ม “ย้อนกลับ” เพื่อทบทวนข้อมูลที่ผ่านไปแล้ว</p>
+      <div class="player-form">
+        <div class="field"><label for="playerName">ชื่อ–สกุล</label><input id="playerName" type="text" autocomplete="name" placeholder="กรอกชื่อผู้เล่น"></div>
+        <div class="field"><label for="playerOrg">โรงเรียน / หน่วยงาน</label><input id="playerOrg" type="text" placeholder="กรอกโรงเรียนหรือหน่วยงาน"></div>
+      </div>
+      <p class="form-note">ข้อมูลนี้ใช้บันทึกการเข้าร่วมกิจกรรมเมื่อเชื่อม Google Sheets</p>
+      <div id="welcomeError" class="feedback warn" style="text-align:left"></div>
+      <button class="btn" onclick="startGame()">เริ่มภารกิจ</button>
+    </div>
+  </section>
+
+  <section id="brief" class="screen stage-wrap">
+    <div class="stage-head"><div class="kicker">Mission Brief</div><h1>โจทย์ตั้งต้นของหน่วย</h1><p>ใช้ข้อมูลสองส่วนนี้เป็นฐานในการตัดสินใจตลอดเกม</p></div>
+    <div class="grid2">
+      <div class="info-card"><h3>กลุ่มตัวชี้วัด</h3><p>เลือกใช้เครื่องมือวัดความยาว คาดคะเน เปรียบเทียบ และแก้โจทย์ปัญหาเกี่ยวกับความยาว</p>
+        <details class="inline-details"><summary>ดูรายละเอียด</summary><div class="inline-detail-body"><ul><li>ค 2.1 ป.3/3 เลือกใช้เครื่องวัดความยาวที่เหมาะสม วัดและบอกความยาว</li><li>ค 2.1 ป.3/4 คาดคะเนความยาวเป็นเมตรและเซนติเมตร</li><li>ค 2.1 ป.3/5 เปรียบเทียบความยาวจากสถานการณ์ต่าง ๆ</li><li>ค 2.1 ป.3/6 แสดงวิธีหาคำตอบของโจทย์ปัญหาเกี่ยวกับความยาว</li></ul></div></details>
+      </div>
+      <div class="info-card"><h3>ปัญหาที่ต้องการพัฒนา</h3><p>ผู้เรียนวัดตามโจทย์ได้ แต่ยังใช้ความรู้ในสถานการณ์จริงเพื่อเลือกเครื่องมือ คาดคะเน เปรียบเทียบ วางแผน และอธิบายเหตุผลได้ไม่ชัด</p>
+        <details class="inline-details"><summary>ดูรายละเอียด</summary><div class="inline-detail-body">ผู้เรียนสามารถวัดความยาวตามโจทย์หรือแบบฝึกหัดได้ แต่เมื่อต้องใช้ความรู้ในสถานการณ์จริง ยังเลือกเครื่องมือหรือหน่วยวัดไม่เหมาะสม คาดคะเนและเปรียบเทียบข้อมูลได้ไม่แม่นยำ และยังใช้ข้อมูลจากการวัดเพื่อวางแผน ตัดสินใจ และอธิบายเหตุผลได้ไม่ชัดเจน</div></details>
+      </div>
+    </div>
+    <div class="actions"><span></span><button class="btn" onclick="showScreen('s1match')">เข้าสู่ Stage 1</button></div>
+  </section>
+
+  <section id="s1match" class="screen stage-wrap">
+    <div class="stage-head"><div class="kicker">Stage 1 · Mission 1</div><h1>บัตรแต่ละชุดทำหน้าที่อะไร?</h1><p>ลากบัตรไปวาง หรือแตะบัตรแล้วแตะช่องปลายทาง</p></div>
+    <div class="panel">
+      <div class="grid3" id="s1zones"></div>
+      <div class="bank" id="s1bank"></div>
+      <div id="s1hint" class="hintbox"></div><div id="s1fb" class="feedback"></div>
+      <div class="actions"><button class="btn ghost" onclick="giveMatchHint('s1')">💡 คำใบ้</button><div class="actions-right"><button class="btn secondary" onclick="resetMatch('s1')">เริ่มใหม่</button><button class="btn" onclick="checkMatch('s1')">ตรวจคำตอบ</button></div></div>
+    </div>
+  </section>
+
+  <section id="s1clo" class="screen stage-wrap">
+    <div class="stage-head"><div class="kicker">Stage 1 · Mission 2</div><h1>CLO ใดเขียนได้เหมาะสมที่สุด?</h1><p>เลือกผลลัพธ์ปลายทางที่เกิดจากกลุ่มตัวชี้วัด แสดงการนำความรู้ไปใช้ในสถานการณ์จริง และ <strong>ไม่ผูกติดกับบริบทหรือภารกิจเฉพาะ</strong></p></div>
+    <div class="panel split-layout">
+      <aside class="sidebar-stack">
+        <div class="ref-card">
+          <span class="tag">ข้อมูลอ้างอิง</span>
+          <h3>กลุ่มตัวชี้วัดของหน่วย</h3>
+          <ul>
+            <li>ค 2.1 ป.3/3 เลือกใช้เครื่องวัดความยาวที่เหมาะสม วัดและบอกความยาว</li>
+            <li>ค 2.1 ป.3/4 คาดคะเนความยาวเป็นเมตรและเซนติเมตร</li>
+            <li>ค 2.1 ป.3/5 เปรียบเทียบความยาวจากสถานการณ์ต่าง ๆ</li>
+            <li>ค 2.1 ป.3/6 แสดงวิธีหาคำตอบของโจทย์ปัญหาเกี่ยวกับความยาว</li>
+          </ul>
+        </div>
+        <div class="ref-card">
+          <h3>หลักช่วยตัดสินใจ</h3>
+          <p class="mini">CLO ควรเกิดจากกลุ่มตัวชี้วัด และแสดงว่าผู้เรียน <strong>ใช้ความรู้ได้จริง</strong> โดยไม่ระบุบริบทเฉพาะ เช่น แปลงผัก หรือชิ้นงานปลายทางโดยตรง</p>
+          <p class="mini">ระวังตัวเลือกที่ <strong>กว้างเกินตัวชี้วัด</strong> หรือ <strong>แคบเกินไปจนหยุดที่การทำแบบทดสอบ</strong></p>
+        </div>
+      </aside>
+      <div>
+        <div id="cloChoices" class="choice-list"></div><div id="cloHint" class="hintbox"></div><div id="cloFb" class="feedback"></div>
+        <div class="actions"><div class="actions-right"><button class="btn ghost" onclick="giveCLOHint()">💡 คำใบ้</button><button class="btn secondary" onclick="openMissionBrief()">ดูข้อมูลตั้งต้น</button></div><button class="btn" onclick="checkChoice('clo')">ยืนยันคำตอบ</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="s1ksav" class="screen stage-wrap">
+    <div class="stage-head"><div class="kicker">Stage 1 · Mission 3</div><h1>K–S–A–V และความจำเป็นต่อ CLO</h1><p>แต่ละบัตรตอบ 2 ขั้น: เป็นทรัพยากรประเภทใด และจำเป็นต่อ CLO นี้หรือไม่</p></div>
+    <div class="panel split-layout">
+      <aside class="sidebar-stack">
+        <div class="ref-card"><span class="tag">ข้อมูลอ้างอิง</span><h3>CLO ของหน่วย</h3><p class="fulltext" id="ksavCloRef"></p></div>
+        <div class="ref-card"><h3>K–S–A–V ใช้แยกอะไร?</h3><ul><li><strong>K — Knowledge</strong> ความรู้ที่ต้องนำมาใช้</li><li><strong>S — Skills</strong> ทักษะหรือกระบวนการที่ต้องปฏิบัติ</li><li><strong>A — Attitudes</strong> เจตคติหรือแนวโน้มการปฏิบัติที่สนับสนุนคุณภาพของงาน</li><li><strong>V — Values</strong> คุณค่าที่ผู้เรียนยึดถือในการตัดสินใจและการปฏิบัติ</li></ul></div>
+        <div class="ref-card"><h3>เกณฑ์ตัดความจำเป็น</h3><p class="mini">ถามว่า <strong>“ถ้าตัดสิ่งนี้ออก ผู้เรียนยังสามารถปฏิบัติ CLO ได้อย่างมีคุณภาพใกล้เคียงเดิมหรือไม่?”</strong> ไม่ได้ถามว่าสิ่งนั้นมีประโยชน์หรือไม่</p></div>
+      </aside>
+      <div class="big-card">
+        <div class="counter" id="ksavCounter"></div>
+        <blockquote id="ksavText"></blockquote>
+        <h3>1) สิ่งนี้เป็นทรัพยากรประเภทใด?</h3><div class="pill-row" id="ksavTypeBtns"></div>
+        <h3>2) จำเป็นต่อการบรรลุ CLO นี้หรือไม่?</h3><div class="pill-row" id="ksavNeedBtns"></div>
+        <div id="ksavFb" class="feedback"></div>
+        <div class="actions"><button class="btn ghost" onclick="giveKSAVHint()">💡 ใช้เกณฑ์ช่วยคิด</button><button class="btn" onclick="submitKSAV()">ยืนยันบัตรนี้</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="s1order" class="screen stage-wrap">
+    <div class="stage-head"><div class="kicker">Stage 1 · Mission 4</div><h1>ลำดับ Sub-CLO ให้เหมาะสมกับการพัฒนาผู้เรียน</h1><p>เรียงลำดับ Sub-CLO จากสิ่งที่ควรพัฒนาเป็นฐานก่อน ไปสู่ความสามารถที่ซับซ้อนขึ้น</p></div>
+    <div class="panel split-layout">
+      <aside class="sidebar-stack">
+        <div class="ref-card"><span class="tag">ปลายทาง</span><h3>CLO ของหน่วย</h3><p class="fulltext" id="s1orderCloRef"></p></div>
+        <div class="ref-card"><h3>หลักช่วยเรียง Sub-CLO</h3><p class="mini">คิดจากพัฒนาการของความสามารถว่า ผู้เรียนต้อง <strong>สร้างข้อมูลให้ได้ก่อน → ตรวจสอบและตีความข้อมูล → ใช้ข้อมูลเพื่อเปรียบเทียบทางเลือกและตัดสินใจ</strong></p></div>
+      </aside>
+      <div><div id="s1orderList" class="order-list"></div><div id="s1orderFb" class="feedback"></div><div class="actions"><button class="btn ghost" onclick="orderHint('s1orderFb')">💡 คำใบ้</button><button class="btn" onclick="checkOrder('s1')">ตรวจลำดับ</button></div></div>
+    </div>
+  </section>
+
+  <section id="s1summary" class="screen stage-wrap"><div class="panel complete"><div class="check">✓</div><div class="kicker">Stage 1 Complete</div><h2>ผลลัพธ์ชัดเจนแล้ว</h2><div class="system-map"><div class="node"><strong>CLO</strong></div><div class="arrow">↓</div><div class="node">Sub-CLO 1 → 2 → 3</div><div class="arrow">↑</div><div class="node">K · S · A · V</div></div><p>ตอนนี้เรารู้แล้วว่า ผู้เรียนต้องไปถึงไหน และต้องมีทรัพยากรอะไรเพื่อไปถึงจุดนั้น</p><button class="btn" onclick="showScreen('s2match')">ไป Stage 2</button></div></section>
+
+  <section id="s2match" class="screen stage-wrap">
+    <div class="stage-head"><div class="kicker">Stage 2 · Mission 1</div><h1>หลักฐานแต่ละใบทำหน้าที่อะไร?</h1><p>ลาก E1–E5 ไปยังองค์ประกอบที่ตรงกับหน้าที่มากที่สุด</p></div>
+    <div class="panel"><div class="grid5" id="s2zones"></div><div class="bank" id="s2bank"></div><div id="s2hint" class="hintbox"></div><div id="s2fb" class="feedback"></div><div class="actions"><button class="btn ghost" onclick="giveMatchHint('s2')">💡 คำใบ้</button><div class="actions-right"><button class="btn secondary" onclick="resetMatch('s2')">เริ่มใหม่</button><button class="btn" onclick="checkMatch('s2')">ตรวจระบบ</button></div></div></div>
+  </section>
+
+  <section id="s2choice" class="screen stage-wrap">
+    <div class="stage-head"><div class="kicker" id="s2choiceKicker"></div><h1 id="s2choiceTitle"></h1><p id="s2choiceSub"></p></div>
+    <div class="panel split-layout"><aside class="sidebar-stack" id="s2sidebar"></aside><div><div id="s2choiceList" class="choice-list"></div><div id="s2choiceFb" class="feedback"></div><div class="actions"><button class="btn ghost" onclick="giveS2Hint()">💡 คำใบ้</button><button class="btn" onclick="checkS2Choice()">ยืนยันคำตอบ</button></div></div></div>
+  </section>
+
+  <section id="s2summary" class="screen stage-wrap"><div class="panel complete"><div class="check">✓</div><div class="kicker">Stage 2 Complete</div><h2>ระบบหลักฐานสอดคล้องแล้ว</h2><div class="system-map"><div class="node"><strong>CLO</strong></div><div class="arrow">↓</div><div class="grid2" style="width:min(860px,100%);align-items:start"><div class="system-map" style="padding:8px"><div class="node"><strong>ภาระงานสะท้อนสมรรถนะ</strong><br><span class="subtle">Performance Task</span></div><div class="arrow">↓</div><div class="node"><strong>เกณฑ์คุณภาพ</strong><br><span class="subtle">ใช้ตัดสินระดับคุณภาพของการปฏิบัติ</span></div></div><div class="system-map" style="padding:8px"><div class="node"><strong>หลักฐานการประเมินอื่น</strong></div><div class="arrow">↓</div><div class="split"><div class="node">AaL<br><span class="subtle">ผู้เรียนใช้ข้อมูลกำกับและปรับตนเอง</span></div><div class="arrow">↔</div><div class="node">AfL<br><span class="subtle">ครูใช้ข้อมูลช่วยให้ผู้เรียนพัฒนา</span></div></div><div class="arrow">↓</div><div class="node">AoL<br><span class="subtle">ใช้หลักฐานปลายทางสรุประดับการบรรลุ CLO</span></div></div></div></div><p>Stage 2 จึงไม่ได้เป็นรายการเครื่องมือแยกส่วน แต่เป็นระบบหลักฐานที่แต่ละส่วนต้องย้อนกลับไปสอดคล้องกับ CLO</p><button class="btn" onclick="showScreen('s3match')">ไป Stage 3</button></div></section>
+
+  <section id="s3match" class="screen stage-wrap">
+    <div class="stage-head"><div class="kicker">Stage 3 · Mission 1</div><h1>จับคู่ความสามารถกับกิจกรรม</h1><p>ลาก “กิจกรรม” ไปวางใต้เป้าหมายความสามารถที่กิจกรรมนั้นพัฒนา</p></div>
+    <div class="panel"><div class="grid2" id="s3zones"></div><div class="bank" id="s3bank"></div><div id="s3hint" class="hintbox"></div><div id="s3fb" class="feedback"></div><div class="actions"><button class="btn ghost" onclick="giveMatchHint('s3')">💡 คำใบ้</button><div class="actions-right"><button class="btn secondary" onclick="resetMatch('s3')">เริ่มใหม่</button><button class="btn" onclick="checkMatch('s3')">ตรวจการจับคู่</button></div></div></div>
+  </section>
+
+  <section id="s3order" class="screen stage-wrap">
+    <div class="stage-head"><div class="kicker">Stage 3 · Mission 2</div><h1>จัดเส้นทางการเรียนรู้</h1><p>เรียงกิจกรรมการเรียนรู้จากฐานความสามารถเบื้องต้น ไปสู่การบูรณาการในภาระงานปลายทาง</p></div>
+    <div class="panel split-layout">
+      <aside class="sidebar-stack">
+        <div class="ref-card">
+          <span class="tag">ข้อมูลอ้างอิง</span>
+          <h3>Sub-CLO ของหน่วย</h3>
+          <ul>
+            <li><strong>Sub-CLO 1</strong> เลือกเครื่องมือและหน่วยที่เหมาะสม คาดคะเน วัด อ่านค่า และบันทึกได้ถูกต้อง</li>
+            <li><strong>Sub-CLO 2</strong> เปรียบเทียบค่าคาดคะเนกับค่าจริง ตรวจสอบความสมเหตุสมผล และใช้ข้อมูลอธิบายผล</li>
+            <li><strong>Sub-CLO 3</strong> ใช้ข้อมูลจากการวัดเพื่อเปรียบเทียบทางเลือก ตัดสินใจ และอธิบายเหตุผล</li>
+          </ul>
+        </div>
+        <div class="ref-card">
+          <h3>หลักช่วยเรียงลำดับ</h3>
+          <p class="mini">เส้นทางการเรียนรู้ควรเขียนเป็น <strong>กิจกรรมการเรียนรู้โดยสังเขป</strong> ไม่ใช่ข้อความเชิงแนวคิดสั้น ๆ และควรเรียงจากกิจกรรมที่สร้างฐานให้ผู้เรียน ไปสู่กิจกรรมที่ใช้ข้อมูลตัดสินใจและบูรณาการทั้งหมด</p>
+        </div>
+      </aside>
+      <div>
+        <div id="s3orderList" class="order-list"></div><div id="s3orderFb" class="feedback"></div><div class="actions"><button class="btn ghost" onclick="orderHint('s3orderFb')">💡 คำใบ้</button><button class="btn" onclick="checkOrder('s3')">ตรวจลำดับ</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="final" class="screen stage-wrap"><div class="panel complete"><div class="check">✓</div><div class="kicker">Mission Complete</div><h2>คุณประกอบหน่วยการเรียนรู้สำเร็จแล้ว</h2><div id="participantSummary" class="participant-chip"></div><div class="summary-columns"><div class="summary-box"><strong>Stage 1 · ผลลัพธ์</strong><span>CLO → Sub-CLO → K–S–A–V</span></div><div class="summary-box"><strong>Stage 2 · หลักฐาน</strong><span>Performance Task · เกณฑ์คุณภาพ · AaL · AfL · AoL</span></div><div class="summary-box"><strong>Stage 3 · เส้นทาง</strong><span>สร้างฐาน → ตรวจสอบข้อมูล → ตัดสินใจ → บูรณาการ</span></div></div><p><strong>จากตัวอย่าง → สู่หน่วยของท่านเอง</strong><br><span class="subtle">v1.1 Connected · รองรับการส่งผลไป Google Sheets เมื่อกำหนด Web App URL</span></p><div id="submitStatus" class="submit-status loading"><strong>สถานะการบันทึก</strong><span>กำลังเตรียมข้อมูลผลการเล่น...</span></div><div class="advisor-card"><h3>ไปต่อกับ AI ที่ปรึกษาการพัฒนาคุณภาพการศึกษา</h3><p>ระบบจะคัดลอกข้อความส่งต่อให้โดยอัตโนมัติ แล้วเปิด AI ที่ปรึกษาในแท็บใหม่ จากนั้นกด <strong>Ctrl+V</strong> เพื่อเริ่มออกแบบหน่วยของท่านเองต่อได้ทันที</p><div class="advisor-actions"><button class="btn advisor" onclick="continueToAIAdvisor()">คัดลอกข้อความส่งต่อ + เปิด AI ที่ปรึกษา ↗</button><button class="btn secondary small" onclick="previewAdvisorHandoff()">ดูข้อความส่งต่อ</button></div><div id="handoffStatus" class="handoff-status"></div></div><div class="actions" style="justify-content:center"><button class="btn secondary" onclick="restartGame()">เล่นอีกครั้ง</button><button class="btn secondary" onclick="submitGameResult(true)">ส่งข้อมูลอีกครั้ง</button><button class="btn" onclick="openStats()">ดูสรุปการเล่น</button></div></div></section>
+</main>
+
+<div class="modal" id="modal"><div class="modal-card"><div class="modal-top"><div><span class="tag">รายละเอียด</span><h2 id="modalTitle"></h2></div><button class="x" onclick="closeModal()">×</button></div><div id="modalBody"></div></div></div>
+
+<script>
+// ใส่ URL ที่ได้จากการ Deploy Apps Script Web App ในบรรทัดด้านล่าง
+const GOOGLE_SHEET_ENDPOINT = 'https://script.google.com/macros/s/AKfycbwGDiyNOtpQ4iO9jhvXy2IsTMT4hCbWz5-lc6YIBjDO0gHs-65RQ5Jag6Rauy50qfW9/exec';
+const GAME_VERSION = 'v1.1-candidate';
+const AI_ADVISOR_URL = 'https://chatgpt.com/g/g-6a799c238bbc819192e16188b45980fb-ai-thiiprueksaakaarphathnaakhunphaaphkaarsueksaa';
+function newSessionId(){return 'UBD-'+Date.now().toString(36).toUpperCase()+'-'+Math.random().toString(36).slice(2,8).toUpperCase()}
+const state={sessionId:newSessionId(),participant:{name:'',org:''},submitted:false,submissionInFlight:false,screen:'welcome',history:[],reviewMode:false,reviewHistoryBase:[],returnPoint:null,selectedCard:null,attempts:{},hintUses:{},started:Date.now(),selectedChoice:null,cloResponse:null,ksavIndex:0,ksavResponses:{},s2Index:0,s2Responses:{},cloHintLevel:0};
+const metrics={firstTryCorrect:{},attemptCount:{},hintLevelUsed:{},startedAt:new Date().toISOString()};
+
+const matchSets={
+ s1:{next:'s1clo',zones:[['clo','CLO<small>ผลการเรียนรู้เชิงสมรรถนะของหน่วย</small>'],['sub','Sub-CLO<small>ผลการเรียนรู้ย่อยที่พัฒนาเป็นลำดับ</small>'],['ksav','K–S–A–V<small>ทรัพยากรที่ผู้เรียนนำมาใช้</small>']],cards:[
+  {id:'R1',short:'บัตร R1',correct:'clo'},
+  {id:'R2',short:'บัตร R2',correct:'ksav'},
+  {id:'R3',short:'บัตร R3',correct:'sub'}],
+  hints:['อย่าใช้ชื่อ R1–R3 เดาคำตอบ ให้เปิดอ่านรายละเอียดแล้วถามว่า “ข้อความในบัตรนี้ทำหน้าที่อะไร?”','แยกให้ชัดระหว่าง “ผลลัพธ์ปลายทาง” “ขั้นความสามารถย่อย” และ “ทรัพยากร K–S–A–V”']},
+ s2:{next:'s2choice',zones:[['pt','Performance Task<small>ภาระงานสะท้อนสมรรถนะ</small>'],['rubric','เกณฑ์คุณภาพ<small>ใช้ตัดสินระดับคุณภาพของการปฏิบัติ/ผลงาน</small>'],['aal','AaL<small>ผู้เรียนใช้การประเมินกำกับตนเอง</small>'],['afl','AfL<small>ครูใช้ข้อมูลเพื่อพัฒนาการเรียนรู้</small>'],['aol','AoL<small>หลักฐานเพื่อสรุปผลปลายทาง</small>']],cards:[
+  {id:'E1',short:'บัตร E1',correct:'pt'},
+  {id:'E2',short:'บัตร E2',correct:'rubric'},
+  {id:'E3',short:'บัตร E3',correct:'afl'},
+  {id:'E4',short:'บัตร E4',correct:'aol'},
+  {id:'E5',short:'บัตร E5',correct:'aal'}],
+  hints:['เปิดอ่านรายละเอียดของแต่ละบัตร แล้วพิจารณาว่า “ข้อมูลนี้ทำหน้าที่อะไรในระบบการประเมิน?”','ลองใช้ 3 คำถาม: ใครเป็นผู้ใช้ข้อมูล? ใช้เมื่อไร? และใช้ข้อมูลนั้นทำอะไรต่อ?']},
+ s3:{next:'s3order',zones:[
+  ['sc1','Sub-CLO 1<small>เลือกเครื่องมือและหน่วยที่เหมาะสม คาดคะเน วัด อ่านค่า และบันทึกได้ถูกต้อง</small>'],
+  ['sc2','Sub-CLO 2<small>เปรียบเทียบค่าคาดคะเนกับค่าจริง ตรวจสอบความสมเหตุสมผล และใช้ข้อมูลอธิบายผล</small>'],
+  ['sc23','Sub-CLO 2 + 3<small>ตรวจสอบข้อมูล แล้วใช้ข้อมูลจากการวัดเปรียบเทียบทางเลือก ตัดสินใจ และอธิบายเหตุผล</small>'],
+  ['all','บูรณาการ Sub-CLO 1–3 สู่ CLO<small>นำความสามารถทั้งหมดมาใช้ร่วมกันในภาระงานปลายทาง</small>']],cards:[
+  {id:'ACT1',short:'กิจกรรม · สำรวจพื้นที่ ทดลองใช้เครื่องมือ คาดคะเน วัด และบันทึกข้อมูล',detail:'เผชิญสถานการณ์การวัดในพื้นที่จริง สำรวจและเปรียบเทียบเครื่องมือ ทดลองอ่านค่า เลือกเครื่องมือและหน่วยให้เหมาะสม คาดคะเนก่อนวัด ลงมือวัดและบันทึกข้อมูล แล้วตรวจสอบผลการวัดกับเพื่อนและแก้ไขเมื่อพบความคลาดเคลื่อน',correct:'sc1'},
+  {id:'ACT2',short:'กิจกรรม · เปรียบเทียบค่าคาดคะเนกับค่าจริง ตรวจสอบข้อมูล และอภิปรายผล',detail:'คาดคะเนระยะก่อนวัด วัดจริงและบันทึกข้อมูล เปรียบเทียบค่าคาดคะเนกับค่าจริง ตรวจสอบข้อมูลที่แตกต่างหรือผิดปกติ ใช้ข้อมูลตอบคำถามจากสถานการณ์ และอภิปรายว่าข้อมูลใดน่าเชื่อถือเพียงพอที่จะนำไปใช้ต่อ',correct:'sc2'},
+  {id:'ACT3',short:'กิจกรรม · สร้างทางเลือกจากข้อมูล เปรียบเทียบ เลือกแนวทาง และอธิบายเหตุผล',detail:'รวบรวมและตรวจสอบข้อมูลที่มี วิเคราะห์ข้อจำกัด สร้างแนวทางอย่างน้อย 2 ทางเลือก ใช้ข้อมูลเปรียบเทียบข้อดีและข้อจำกัด เลือกแนวทางที่เหมาะสม จัดทำร่าง อธิบายเหตุผล แลกเปลี่ยน Feedback และปรับร่างจากข้อมูลหรือเหตุผลที่ดีกว่า',correct:'sc23'},
+  {id:'ACT4',short:'กิจกรรม · จัดทำผลงาน นำเสนอ รับข้อเสนอแนะ และปรับปรุงงาน',detail:'ตรวจสอบข้อมูลและผลงาน ปฏิบัติภาระงานปลายทาง จัดทำผลงานฉบับสมบูรณ์ นำเสนอข้อมูล วิธีคิด และเหตุผล ตอบคำถาม รับข้อเสนอแนะ ตรวจสอบกับหลักฐาน ปรับปรุงผลงาน และสะท้อนการเรียนรู้',correct:'all'}],
+  hints:['อ่านรายละเอียดของกิจกรรม แล้วถามว่า “กิจกรรมนี้ทำให้ผู้เรียนพัฒนาความสามารถอะไรเป็นหลัก?”','อย่าจับคู่จากคำที่เหมือนกัน ให้พิจารณาการกระทำของผู้เรียนและระดับความซับซ้อนของความสามารถ']}
+};
+
+const cloData=[
+ {id:'R1A',short:'เลือกใช้เครื่องมือและหน่วยวัด คาดคะเน วัด เปรียบเทียบ ตรวจสอบข้อมูล และใช้ข้อมูลวางแผน ตัดสินใจ พร้อมอธิบายเหตุผลในสถานการณ์จริง',detail:'ผู้เรียนสามารถเลือกใช้เครื่องมือและหน่วยวัดที่เหมาะสม คาดคะเน วัด อ่านค่า และเปรียบเทียบความยาวหรือระยะ ตรวจสอบความสมเหตุสมผลของข้อมูล และใช้ข้อมูลจากการวัดเพื่อพิจารณาทางเลือก วางแผน ตัดสินใจ และอธิบายเหตุผลได้อย่างถูกต้องและสมเหตุสมผลเมื่อเผชิญสถานการณ์จริง',correct:true,why:'ข้อนี้เกิดจากกลุ่มตัวชี้วัดเดิม ครอบคลุมการสร้างและใช้ข้อมูลเพื่อคิดและตัดสินใจ และเขียนเป็นความสามารถที่นำไปใช้ได้ในสถานการณ์จริงโดยไม่ผูกกับบริบทหรือชิ้นงานเฉพาะ'},
+ {id:'R1B',short:'ใช้ความรู้คณิตศาสตร์คำนวณความยาว พื้นที่ ปริมาตร ต้นทุน กำไร และร้อยละ เพื่อนำไปวางแผนและตัดสินใจในสถานการณ์จริง',detail:'ผู้เรียนสามารถใช้ความรู้คณิตศาสตร์ในการคำนวณความยาว พื้นที่ ปริมาตร ต้นทุน กำไร และร้อยละ เพื่อนำข้อมูลไปวางแผน เปรียบเทียบทางเลือก และตัดสินใจในสถานการณ์จริงได้อย่างเหมาะสม',correct:false,why:'แม้เขียนให้ใช้ความรู้ในสถานการณ์จริง แต่ขยายผลลัพธ์ไปถึงพื้นที่ ปริมาตร ต้นทุน กำไร และร้อยละ ซึ่งเกินกลุ่มตัวชี้วัดที่หน่วยนี้นำมาออกแบบ'},
+ {id:'R1C',short:'เลือกเครื่องมือและหน่วยวัด คาดคะเน วัด อ่านค่า เปรียบเทียบความยาว และทำแบบทดสอบหรือโจทย์ปัญหาได้ตามเกณฑ์',detail:'ผู้เรียนสามารถเลือกเครื่องมือและหน่วยวัด คาดคะเน วัด อ่านค่า และเปรียบเทียบความยาวได้ถูกต้องตามตัวชี้วัด พร้อมทำแบบทดสอบและโจทย์ปัญหาเกี่ยวกับความยาวได้ตามเกณฑ์ที่กำหนด',correct:false,why:'ข้อนี้สอดคล้องกับตัวชี้วัดด้านการวัด แต่ยังหยุดที่การปฏิบัติตามโจทย์และแบบทดสอบ ไม่ได้แสดงการนำข้อมูลไปใช้วางแผน ตัดสินใจ และอธิบายเหตุผลในสถานการณ์จริง'}
+];
+
+const correctCLO = cloData.find(x=>x.correct);
+const indicatorList = ['ค 2.1 ป.3/3 เลือกใช้เครื่องวัดความยาวที่เหมาะสม วัดและบอกความยาว','ค 2.1 ป.3/4 คาดคะเนความยาวเป็นเมตรและเซนติเมตร','ค 2.1 ป.3/5 เปรียบเทียบความยาวจากสถานการณ์ต่าง ๆ','ค 2.1 ป.3/6 แสดงวิธีหาคำตอบของโจทย์ปัญหาเกี่ยวกับความยาว'];
+const correctPTSummary = 'ผู้เรียนรับบทนักออกแบบแปลงผักของโรงเรียน สำรวจพื้นที่ เลือกเครื่องมือและหน่วย คาดคะเนก่อนวัด วัดและบันทึกข้อมูล เปรียบเทียบข้อมูลเพื่อสร้างและเลือกทางเลือกในการจัดพื้นที่ จัดทำแผนผัง แล้วนำเสนอวิธีคิดและเหตุผลของการตัดสินใจโดยใช้ข้อมูลจริง';
+
+
+const ksavData=[
+ {id:'R2A',text:'ความรู้เรื่องความยาว หน่วยวัด เครื่องมือวัด การอ่านค่า การคาดคะเน การเปรียบเทียบ และความสัมพันธ์ของข้อมูลการวัด',type:'K',need:'yes',explain:'เป็นความรู้พื้นฐานที่ใช้โดยตรงในการวัดและตีความข้อมูลตาม CLO'},
+ {id:'R2B',text:'ความรู้เกี่ยวกับคุณค่าทางโภชนาการของผัก การทำปุ๋ย การใส่ปุ๋ย และการป้องกันศัตรูพืช',type:'K',need:'no',explain:'เป็นความรู้ที่อาจมีประโยชน์ในบางภารกิจ แต่ไม่ใช่ทรัพยากรจำเป็นต่อ CLO เรื่องการวัดและการใช้ข้อมูลในสถานการณ์จริง'},
+ {id:'R2C',text:'เลือกและใช้เครื่องมือ วัดและบันทึกข้อมูล คาดคะเน เปรียบเทียบ ตรวจสอบความสมเหตุสมผล ใช้ข้อมูลพิจารณาทางเลือก ตัดสินใจ และอธิบายเหตุผล',type:'S',need:'yes',explain:'เป็นทักษะที่ผู้เรียนต้องปฏิบัติจริงเพื่อบรรลุ CLO'},
+ {id:'R2D',text:'วาดภาพ ระบายสี และตกแต่งแผนผังให้มีความสวยงามและน่าสนใจ',type:'S',need:'no',explain:'เป็นทักษะด้านการตกแต่ง ไม่ใช่หลักฐานหลักของการใช้ข้อมูลวัดและตัดสินใจตาม CLO'},
+ {id:'R2E',text:'ทำงานอย่างรอบคอบ รับผิดชอบต่อความถูกต้องของข้อมูล กล้าตรวจสอบความคิด ยอมรับความคลาดเคลื่อน และพร้อมปรับปรุงเมื่อมีข้อมูลหรือเหตุผลที่ดีกว่า',type:'A',need:'yes',explain:'เจตคตินี้สนับสนุนคุณภาพของการสร้าง ตรวจสอบ และใช้ข้อมูลอย่างมีเหตุผล'},
+ {id:'R2F',text:'มีความตั้งใจ ใฝ่เรียนรู้ และมุ่งมั่นทำงานตามที่ได้รับมอบหมาย',type:'A',need:'no',explain:'เป็นคุณลักษณะที่ดีในภาพรวม แต่ไม่ใช่องค์ประกอบจำเป็นเฉพาะของ CLO นี้'},
+ {id:'R2G',text:'เห็นคุณค่าของข้อมูลจริงและการใช้เหตุผลประกอบการตัดสินใจ',type:'V',need:'yes',explain:'เป็นคุณค่าที่เชื่อมโดยตรงกับการใช้ข้อมูลจริงและเหตุผลประกอบการตัดสินใจตาม CLO'},
+ {id:'R2H',text:'เห็นคุณค่าของอาชีพเกษตรกรรม ภูมิปัญญาท้องถิ่น และการอนุรักษ์ประเพณีการทำเกษตรของชุมชน',type:'V',need:'no',explain:'มีคุณค่าในบริบทเกษตร แต่ไม่ใช่ทรัพยากรหลักที่จำเป็นต่อการปฏิบัติ CLO นี้'}
+];
+
+const orders={
+ s1:[
+  {id:'R3A',text:'ใช้ข้อมูลจากการวัดเพื่อเปรียบเทียบทางเลือก กำหนดตำแหน่งและระยะ พร้อมอธิบายเหตุผลของการตัดสินใจ'},
+  {id:'R3B',text:'เลือกเครื่องมือและหน่วยที่เหมาะสม คาดคะเน วัด อ่านค่า และบันทึกได้ถูกต้อง'},
+  {id:'R3C',text:'เปรียบเทียบค่าคาดคะเนกับค่าที่วัดจริง ตรวจสอบความสมเหตุสมผล และใช้ข้อมูลอธิบายผล'}],
+ s3:[
+  {id:'ACT1',text:'สำรวจสถานการณ์การวัด ทดลองใช้เครื่องมือ เลือกหน่วย คาดคะเน วัด อ่านค่า และบันทึกข้อมูล'},
+  {id:'ACT2',text:'คาดคะเนและวัดจริง เปรียบเทียบค่าที่ได้ ตรวจสอบความสมเหตุสมผลของข้อมูล และอภิปรายผล'},
+  {id:'ACT3',text:'ใช้ข้อมูลสร้างทางเลือก เปรียบเทียบข้อดีข้อจำกัด เลือกแนวทาง และอธิบายเหตุผลของการตัดสินใจ'},
+  {id:'ACT4',text:'จัดทำผลงานปลายทาง นำเสนอวิธีคิดและเหตุผล รับข้อเสนอแนะ และปรับปรุงงาน'}]
+};
+const correctOrders={s1:['R3B','R3C','R3A'],s3:['ACT1','ACT2','ACT3','ACT4']};
+let orderState={s1:shuffle([...orders.s1]),s3:shuffle([...orders.s3])};
+
+const s2Missions=[
+ {id:'E1',title:'Performance Task แบบไหนเหมาะที่สุด?',sub:'เลือกภาระงานที่สอดคล้องกับ CLO และเปิดโอกาสให้ผู้เรียนแสดงสมรรถนะได้จริง',hint:'อย่าดูเพียงว่าภารกิจน่าสนใจหรือไม่ ให้ดูว่าผลงานและการปฏิบัติที่เกิดขึ้นเป็นหลักฐานของ CLO หรือไม่',options:[
+  {id:'E1A',text:'รับบทนักออกแบบแปลงผัก สำรวจพื้นที่ เลือกเครื่องมือและหน่วย คาดคะเน วัด บันทึก เปรียบเทียบข้อมูล สร้างทางเลือก จัดทำแผนผัง และนำเสนอเหตุผล',correct:true,detail:'โรงเรียนต้องการจัดพื้นที่ส่วนหนึ่งเป็นแปลงผักสำหรับใช้ในการเรียนรู้ ผู้เรียนรับบทเป็นนักออกแบบแปลงผักของโรงเรียน มีเป้าหมายช่วยวางแผนการจัดพื้นที่ให้เหมาะสมกับข้อมูลจริง โดยสำรวจพื้นที่ เลือกเครื่องมือและหน่วยวัดที่เหมาะสม คาดคะเนระยะก่อนวัด วัดและบันทึกข้อมูล แล้วเปรียบเทียบข้อมูลเพื่อพิจารณาทางเลือกในการกำหนดตำแหน่งและระยะการจัดวางส่วนต่าง ๆ ของแปลงผัก จากนั้นจัดทำแผนผังการจัดพื้นที่อย่างง่ายและนำเสนอแนวคิดต่อครู เพื่อน หรือผู้ดูแลแปลงผัก โดยอธิบายว่าตนใช้ข้อมูลใดในการตัดสินใจ และเหตุใดจึงเลือกแนวทางนั้น คุณภาพของงานพิจารณาจากความถูกต้องของการวัด การใช้ข้อมูล ความสมเหตุสมผลของการตัดสินใจ และความชัดเจนในการอธิบายวิธีคิด',fb:'ภาระงานนี้มีบริบท บทบาท การใช้ข้อมูลจริง การตัดสินใจ ผลงาน การสื่อสาร และเกณฑ์คุณภาพที่สัมพันธ์กับ CLO'},
+  {id:'E1B',text:'วัดความยาวและระยะ คาดคะเน เปรียบเทียบ แล้วจัดทำแผนผังตามเกณฑ์',correct:false,detail:'ผู้เรียนวัดความยาวและระยะของพื้นที่ที่กำหนด คาดคะเนและเปรียบเทียบข้อมูล แล้วจัดทำแผนผังแปลงผักโดยใช้ข้อมูลที่ได้ พร้อมอธิบายวิธีคิดและเหตุผลของการออกแบบให้ถูกต้องตามเกณฑ์ที่กำหนด',fb:'มีการปฏิบัติจริง แต่บริบท บทบาท ผู้รับสาร และเงื่อนไขของการใช้ข้อมูลเพื่อการตัดสินใจยังไม่ชัดเท่าตัวเลือกที่สมบูรณ์กว่า'},
+  {id:'E1C',text:'ศึกษาประโยชน์ของผัก แล้วทำโปสเตอร์หรือคลิปประชาสัมพันธ์โครงการ',correct:false,detail:'โรงเรียนต้องการประชาสัมพันธ์โครงการแปลงผัก ผู้เรียนรับบทเป็นทีมประชาสัมพันธ์รุ่นเยาว์ มีหน้าที่ศึกษาประโยชน์ของผักและการปลูกผักในโรงเรียน แล้วออกแบบโปสเตอร์หรือคลิปสั้นเพื่อเชิญชวนเพื่อนและผู้ปกครองให้เห็นคุณค่าของโครงการ จากนั้นนำเสนอผลงานต่อครูและเพื่อน โดยพิจารณาคุณภาพจากความถูกต้องของเนื้อหา ความน่าสนใจ ความเหมาะสมกับผู้รับสาร และความชัดเจนในการสื่อสาร',fb:'เป็นภารกิจจริง แต่หลักฐานที่เกิดขึ้นเน้นการประชาสัมพันธ์ มากกว่าการวัด ใช้ข้อมูล และตัดสินใจตาม CLO'}]},
+ {id:'E2',title:'Rubric แบบไหนวัดสิ่งที่ต้องการจริง?',sub:'เลือก Rubric ที่ตัดสินสิ่งเดียวกับที่ CLO และ Performance Task ต้องการ',hint:'Rubric ที่ดีไม่ได้ดีเพราะมีหลายด้าน แต่ต้องวัด “คุณภาพเดียวกับที่ CLO ต้องการให้ผู้เรียนแสดง”',options:[
+  {id:'E2A',text:'ประเมินการเลือกเครื่องมือและการวัด การใช้ข้อมูลตัดสินใจ การอธิบายเหตุผล และการตรวจสอบปรับปรุงงาน',correct:true,detail:'ระดับคุณภาพ 4 ระดับ ครอบคลุมความถูกต้องของการวัด การใช้ข้อมูลเปรียบเทียบทางเลือกและตัดสินใจ การอธิบายวิธีคิดและเหตุผล และการตรวจสอบปรับปรุงงาน',detailHtml:`<p><strong>Rubric ตัวเลือกที่เหมาะสม</strong></p><table class="rubric-table"><thead><tr><th>ด้านประเมิน</th><th>ระดับ 4</th><th>ระดับ 3</th><th>ระดับ 2</th><th>ระดับ 1</th></tr></thead><tbody><tr><td class="rowhead">การเลือกเครื่องมือและการวัด</td><td>เลือกเครื่องมือ/หน่วยเหมาะสม วัดและบันทึกได้ถูกต้อง</td><td>เลือกเหมาะสมเกือบทั้งหมด มีคลาดเคลื่อนเล็กน้อย</td><td>เลือกได้บางส่วน ข้อมูลยังคลาดเคลื่อน</td><td>เลือกไม่เหมาะสมและข้อมูลไม่ถูกต้อง</td></tr><tr><td class="rowhead">การใช้ข้อมูลตัดสินใจ</td><td>ใช้ข้อมูลเปรียบเทียบทางเลือกและตัดสินใจได้ชัด</td><td>ใช้ข้อมูลตัดสินใจได้ค่อนข้างดี</td><td>ใช้ข้อมูลบางส่วน เหตุผลยังไม่ชัด</td><td>ตัดสินใจโดยแทบไม่ใช้ข้อมูล</td></tr><tr><td class="rowhead">การอธิบายเหตุผล</td><td>อธิบายวิธีคิดและเหตุผลได้ครบ ชัด และสอดคล้องกับข้อมูล</td><td>อธิบายได้ค่อนข้างชัด</td><td>อธิบายได้บางส่วน</td><td>อธิบายไม่ได้หรือไม่สอดคล้อง</td></tr><tr><td class="rowhead">การตรวจสอบและปรับปรุงงาน</td><td>ตรวจสอบข้อผิดพลาดและปรับปรุงจากข้อมูล/feedback ได้ดี</td><td>ตรวจสอบและปรับปรุงได้บางส่วน</td><td>ปรับปรุงเล็กน้อย ยังไม่ชัดเจน</td><td>ไม่ตรวจสอบหรือไม่ปรับปรุงงาน</td></tr></tbody></table><p class="rubric-note">ตารางนี้ย่อความจาก rubric ฉบับเต็ม เพื่อให้เห็นว่าเกณฑ์วัดตรงกับ CLO และ Performance Task</p>`,fb:'เกณฑ์สอดคล้องโดยตรงกับ CLO และสิ่งที่ผู้เรียนต้องแสดงใน Performance Task'},
+  {id:'E2B',text:'ประเมินความสวยงาม ความประณีต ความคิดสร้างสรรค์ และความสมบูรณ์ของชิ้นงาน',correct:false,detail:'Rubric เน้นสีสัน องค์ประกอบ ความเรียบร้อย ความแปลกใหม่ และการตกแต่ง',detailHtml:`<p><strong>Rubric ตัวเลือกที่ไม่เหมาะสม</strong></p><table class="rubric-table"><thead><tr><th>ด้านประเมิน</th><th>สิ่งที่เน้น</th></tr></thead><tbody><tr><td class="rowhead">ความสวยงาม</td><td>สีสันและความดึงดูดของผลงาน</td></tr><tr><td class="rowhead">ความประณีต</td><td>ความเรียบร้อยของการจัดทำ</td></tr><tr><td class="rowhead">ความคิดสร้างสรรค์</td><td>ความแปลกใหม่ของรูปแบบ</td></tr><tr><td class="rowhead">ความสมบูรณ์</td><td>องค์ประกอบของชิ้นงานครบถ้วน</td></tr></tbody></table><p class="rubric-note">Rubric แบบนี้อาจใช้ตัดสินชิ้นงานได้ แต่ยังไม่วัดสมรรถนะหลักเรื่องการวัด การใช้ข้อมูล และการตัดสินใจตาม CLO</p>`,fb:'เกณฑ์นี้ตัดสินคุณภาพของชิ้นงานได้ แต่ยังไม่ตัดสินสมรรถนะหลักที่ CLO ต้องการให้ผู้เรียนแสดง'}]},
+ {id:'E3',title:'AfL แบบไหนใช้ข้อมูลเพื่อพัฒนาจริง?',sub:'เลือกสถานการณ์ที่ครูใช้ข้อมูลระหว่างเรียนเพื่อช่วยให้ผู้เรียนพัฒนาก่อนทำงานต่อ',hint:'ถามว่า “ครูนำข้อมูลที่พบไปใช้เปลี่ยนอะไรต่อหรือไม่?”',options:[
+  {id:'E3A',text:'ครูสังเกตการเลือกเครื่องมือ ตรวจข้อมูล ซักถาม ให้ Feedback และให้ผู้เรียนทดลองหรือปรับกิจกรรมก่อนทำขั้นต่อไป',correct:true,detail:'ระหว่างที่ผู้เรียนคาดคะเน วัด และบันทึกข้อมูล ครูสังเกตวิธีเลือกเครื่องมือ การอ่านค่า และการใช้หน่วย ตรวจบันทึกข้อมูลและซักถามเหตุผล หากพบว่าผู้เรียนเลือกเครื่องมือไม่เหมาะ อ่านค่าคลาดเคลื่อน หรือใช้ข้อมูลยังไม่ถูกต้อง ครูให้ข้อมูลย้อนกลับเฉพาะจุด จัดโอกาสให้ทดลองใหม่ หรือปรับกิจกรรมให้เหมาะกับข้อบกพร่องของผู้เรียน ก่อนให้ดำเนินงานในขั้นต่อไป',fb:'มีการใช้ข้อมูลระหว่างเรียนเพื่อ Feedback และช่วยให้ผู้เรียนพัฒนาก่อนถึงปลายทาง'},
+  {id:'E3B',text:'ครูตรวจใบงานทุกครั้ง ให้คะแนน และรวมเป็นคะแนนปลายหน่วย โดยเดินกิจกรรมต่อไปตามแผนเดิม',correct:false,detail:'ครูตรวจใบงานและแบบฝึกหัดระหว่างเรียนทุกครั้ง ให้คะแนนแต่ละชิ้น แล้วบันทึกคะแนนลงสมุดเพื่อใช้รวมเป็นคะแนนปลายหน่วย โดยผู้เรียนทำกิจกรรมต่อไปตามแผนเดิม',fb:'มีการประเมินและคะแนน แต่ข้อมูลไม่ได้ถูกนำกลับมาใช้เพื่อช่วยพัฒนาผู้เรียนก่อนทำกิจกรรมต่อ'},
+  {id:'E3C',text:'ครูตรวจร่างแผนผังว่าครบหรือไม่ แจ้งคะแนน แต่ไม่ให้ Feedback หรือโอกาสปรับร่าง',correct:false,detail:'หลังผู้เรียนจัดทำร่างแผนผังแปลงผัก ครูตรวจว่าผลงานครบองค์ประกอบหรือไม่ แล้วแจ้งคะแนนให้ผู้เรียนทราบ แต่ไม่มีการให้ข้อมูลย้อนกลับหรือเปิดโอกาสให้ปรับปรุงร่างก่อนส่งผลงานฉบับสุดท้าย',fb:'ครูตรวจผลงาน แต่ยังไม่มี Feedback และโอกาสให้ผู้เรียนปรับปรุงก่อนผลงานปลายทาง'}]},
+ {id:'E4',title:'AoL แบบไหนยืนยัน CLO ได้?',sub:'เลือกหลักฐานปลายทางที่เพียงพอและสอดคล้องกับ CLO',hint:'ถ้า CLO ต้องการให้ผู้เรียน “ใช้” ความรู้ หลักฐานปลายทางควรเห็นการใช้จริง ไม่ใช่เห็นเพียงการจำความรู้',options:[
+  {id:'E4A',text:'ปฏิบัติภาระงานออกแบบแปลงผักจากข้อมูลจริง จัดทำแผนผัง อธิบายเหตุผล และใช้ Rubric ที่สอดคล้องกับ CLO',correct:true,detail:'เมื่อสิ้นสุดหน่วย ผู้เรียนปฏิบัติภาระงานออกแบบแปลงผักโดยใช้ข้อมูลจากการสำรวจและการวัดจริง จัดทำแผนผังการจัดพื้นที่ และนำเสนอวิธีคิดกับเหตุผลของการตัดสินใจ จากนั้นครูใช้เกณฑ์คุณภาพที่สอดคล้องกับ CLO พิจารณาคุณภาพของการวัด การใช้ข้อมูล การตัดสินใจ การอธิบายเหตุผล และการปรับปรุงงาน เพื่อสรุปว่าผู้เรียนบรรลุ CLO ในระดับใด',fb:'หลักฐานปลายทางนี้เปิดให้เห็นความสามารถตาม CLO และมีเกณฑ์ตัดสินที่สอดคล้อง'},
+  {id:'E4B',text:'ทำแบบทดสอบปรนัย 30 ข้อเรื่องเครื่องมือ หน่วยวัด และการเปรียบเทียบ แล้วใช้คะแนนเพียงอย่างเดียวสรุป CLO',correct:false,detail:'เมื่อสิ้นสุดหน่วย ครูให้นักเรียนทำแบบทดสอบปรนัย 30 ข้อเรื่องเครื่องมือวัด หน่วยวัด และการเปรียบเทียบความยาว แล้วใช้คะแนนจากแบบทดสอบเพียงอย่างเดียวสรุปว่าผู้เรียนบรรลุ CLO หรือไม่',fb:'แบบทดสอบช่วยตรวจความรู้ได้ แต่ใช้เพียงอย่างเดียวยังไม่เพียงพอที่จะยืนยันความสามารถในการนำความรู้ไปใช้ตาม CLO'},
+  {id:'E4C',text:'ประเมินแผนผังจากความเรียบร้อย ความสวยงาม ความคิดสร้างสรรค์ และการส่งตรงเวลา',correct:false,detail:'เมื่อสิ้นสุดหน่วย ครูประเมินแผนผังแปลงผักจากความเรียบร้อย ความสวยงาม ความคิดสร้างสรรค์ และการส่งงานตรงเวลา แล้วนำคะแนนรวมมาใช้ตัดสินว่าผู้เรียนบรรลุผลการเรียนรู้ของหน่วย',fb:'ความเรียบร้อย ความสวยงาม และการส่งตรงเวลาไม่ใช่หลักฐานหลักของสมรรถนะที่ CLO กำหนด'}]},
+ {id:'E5',title:'AaL แบบไหนทำให้ผู้เรียนปรับตนเอง?',sub:'เลือกสถานการณ์ที่ผู้เรียนใช้ข้อมูลหรือเกณฑ์เพื่อตรวจสอบและปรับการเรียนรู้ของตนเอง',hint:'แค่ “ประเมินตนเอง” ยังไม่พอ ต้องเห็นว่าผู้เรียนใช้ผลประเมินไปปรับอะไรต่อ',options:[
+  {id:'E5A',text:'ผู้เรียนใช้ Checklist ตรวจงาน ระบุสิ่งที่ทำได้ดี สิ่งที่ต้องปรับ แล้วแก้ไขงานก่อนส่ง',correct:true,detail:'ระหว่างการทำงาน ผู้เรียนใช้รายการตรวจสอบง่าย ๆ พิจารณางานของตนเอง เช่น เลือกเครื่องมือและหน่วยวัดเหมาะสมหรือไม่ ค่าที่วัดมีความสมเหตุสมผลหรือไม่ ใช้ข้อมูลจริงประกอบการออกแบบหรือไม่ และเหตุผลที่ใช้ตัดสินใจสัมพันธ์กับข้อมูลเพียงใด จากนั้นผู้เรียนระบุสิ่งที่ตนทำได้ดี สิ่งที่ยังต้องปรับ และลงมือแก้ไขงานก่อนส่งผลงานปลายหน่วย',fb:'ผู้เรียนใช้เกณฑ์ตรวจสอบตนเองและนำข้อมูลที่ได้ไปปรับงานจริง'},
+  {id:'E5B',text:'ผู้เรียนให้คะแนนความพึงพอใจตนเอง 1–5 แล้วส่งคะแนนให้ครูโดยไม่ต้องอธิบายหรือปรับงาน',correct:false,detail:'เมื่อทำกิจกรรมเสร็จ ผู้เรียนให้คะแนนตนเองจาก 1–5 ว่าตนมีความพึงพอใจต่อผลงานมากเพียงใด แล้วส่งคะแนนให้ครูบันทึก โดยไม่ต้องระบุเหตุผลหรือปรับปรุงงาน',fb:'การให้คะแนนความพึงพอใจยังไม่เพียงพอ เพราะผู้เรียนไม่ได้ใช้เกณฑ์ตรวจสอบการเรียนรู้และนำผลไปปรับปรุง'},
+  {id:'E5C',text:'ครูตรวจผลงานและเขียนข้อเสนอแนะ ผู้เรียนอ่านแต่ไม่ต้องประเมินตนเองหรือใช้ข้อมูลวางแผนปรับ',correct:false,detail:'ครูตรวจผลงานของผู้เรียนแล้วเขียนข้อเสนอแนะว่า ส่วนใดถูกหรือผิด จากนั้นให้ผู้เรียนอ่านความคิดเห็นของครู แต่ไม่ต้องประเมินงานของตนเองหรือใช้ข้อมูลนั้นวางแผนปรับการเรียนรู้',fb:'มีข้อเสนอแนะจากครู แต่ผู้เรียนยังไม่ได้เป็นผู้ตรวจสอบและกำกับการเรียนรู้ของตนเอง'}]}
+];
+
+// เรียงภารกิจ Stage 2 ตามตรรกะของระบบหลักฐาน: ภาระงาน → เกณฑ์คุณภาพ → AaL → AfL → AoL
+const s2MissionSequence=['E1','E2','E5','E3','E4'];
+s2Missions.sort((a,b)=>s2MissionSequence.indexOf(a.id)-s2MissionSequence.indexOf(b.id));
+
+const matchDetailData={
+ s1:{
+  R1:[
+   'ข้อความที่ 1: ผู้เรียนสามารถเลือกใช้เครื่องมือและหน่วยวัดที่เหมาะสม คาดคะเน วัด อ่านค่า และเปรียบเทียบความยาวหรือระยะ ตรวจสอบความสมเหตุสมผลของข้อมูล และใช้ข้อมูลจากการวัดเพื่อพิจารณาทางเลือก วางแผน ตัดสินใจ และอธิบายเหตุผลได้อย่างถูกต้องและสมเหตุสมผลเมื่อเผชิญสถานการณ์จริง',
+   'ข้อความที่ 2: ผู้เรียนสามารถใช้ความรู้คณิตศาสตร์ในการคำนวณความยาว พื้นที่ ปริมาตร ต้นทุน กำไร และร้อยละ เพื่อนำข้อมูลไปวางแผน เปรียบเทียบทางเลือก และตัดสินใจในสถานการณ์จริงได้อย่างเหมาะสม',
+   'ข้อความที่ 3: ผู้เรียนสามารถเลือกเครื่องมือและหน่วยวัด คาดคะเน วัด อ่านค่า และเปรียบเทียบความยาวได้ถูกต้องตามตัวชี้วัด พร้อมทำแบบทดสอบและโจทย์ปัญหาเกี่ยวกับความยาวได้ตามเกณฑ์ที่กำหนด'
+  ],
+  R2:[
+   'ข้อ A: ความรู้เรื่องความยาว หน่วยวัด เครื่องมือวัด การอ่านค่า การคาดคะเน การเปรียบเทียบ และความสัมพันธ์ของข้อมูลการวัด',
+   'ข้อ B: ความรู้เกี่ยวกับคุณค่าทางโภชนาการของผัก การทำปุ๋ย การใส่ปุ๋ย และการป้องกันศัตรูพืช',
+   'ข้อ C: เลือกและใช้เครื่องมือ วัดและบันทึกข้อมูล คาดคะเน เปรียบเทียบ ตรวจสอบความสมเหตุสมผล ใช้ข้อมูลพิจารณาทางเลือก ตัดสินใจ และอธิบายเหตุผล',
+   'ข้อ D: วาดภาพ ระบายสี และตกแต่งแผนผังให้มีความสวยงามและน่าสนใจ',
+   'ข้อ E: ทำงานอย่างรอบคอบ รับผิดชอบต่อความถูกต้องของข้อมูล กล้าตรวจสอบความคิด ยอมรับความคลาดเคลื่อน และพร้อมปรับปรุงเมื่อมีข้อมูลหรือเหตุผลที่ดีกว่า',
+   'ข้อ F: มีความตั้งใจ ใฝ่เรียนรู้ และมุ่งมั่นทำงานตามที่ได้รับมอบหมาย',
+   'ข้อ G: เห็นคุณค่าของข้อมูลจริงและการใช้เหตุผลประกอบการตัดสินใจ',
+   'ข้อ H: เห็นคุณค่าของอาชีพเกษตรกรรม ภูมิปัญญาท้องถิ่น และการอนุรักษ์ประเพณีการทำเกษตรของชุมชน'
+  ],
+  R3:[
+   'ข้อ A: ผู้เรียนใช้ข้อมูลจากการวัดเพื่อเปรียบเทียบทางเลือก กำหนดตำแหน่งและระยะการจัดวาง พร้อมอธิบายเหตุผลของการตัดสินใจโดยใช้ข้อมูลประกอบได้',
+   'ข้อ B: ผู้เรียนเลือกเครื่องมือและหน่วยวัดที่เหมาะสม คาดคะเน วัด อ่านค่า และบันทึกความยาวหรือระยะได้ถูกต้อง',
+   'ข้อ C: ผู้เรียนเปรียบเทียบค่าคาดคะเนกับค่าที่วัดจริง เปรียบเทียบข้อมูลความยาวหรือระยะหลายค่า ตรวจสอบความสมเหตุสมผล และใช้ข้อมูลเพื่อตอบคำถามหรืออธิบายผลได้'
+  ]
+ },
+ s2:{
+  E1:[
+   'ตัวเลือก 1: โรงเรียนต้องการจัดพื้นที่ส่วนหนึ่งเป็นแปลงผักสำหรับใช้ในการเรียนรู้ ผู้เรียนรับบทเป็นนักออกแบบแปลงผักของโรงเรียน มีเป้าหมายช่วยวางแผนการจัดพื้นที่ให้เหมาะสมกับข้อมูลจริง โดยสำรวจพื้นที่ เลือกเครื่องมือและหน่วยวัดที่เหมาะสม คาดคะเนระยะก่อนวัด วัดและบันทึกข้อมูล แล้วเปรียบเทียบข้อมูลเพื่อพิจารณาทางเลือกในการกำหนดตำแหน่งและระยะการจัดวางส่วนต่าง ๆ ของแปลงผัก จากนั้นจัดทำแผนผังการจัดพื้นที่อย่างง่ายและนำเสนอแนวคิดต่อครู เพื่อน หรือผู้ดูแลแปลงผัก โดยอธิบายว่าตนใช้ข้อมูลใดในการตัดสินใจ และเหตุใดจึงเลือกแนวทางนั้น คุณภาพของงานพิจารณาจากความถูกต้องของการวัด การใช้ข้อมูล ความสมเหตุสมผลของการตัดสินใจ และความชัดเจนในการอธิบายวิธีคิด',
+   'ตัวเลือก 2: ผู้เรียนวัดความยาวและระยะของพื้นที่ที่กำหนด คาดคะเนและเปรียบเทียบข้อมูล แล้วจัดทำแผนผังแปลงผักโดยใช้ข้อมูลที่ได้ พร้อมอธิบายวิธีคิดและเหตุผลของการออกแบบให้ถูกต้องตามเกณฑ์ที่กำหนด',
+   'ตัวเลือก 3: โรงเรียนต้องการประชาสัมพันธ์โครงการแปลงผัก ผู้เรียนรับบทเป็นทีมประชาสัมพันธ์รุ่นเยาว์ มีหน้าที่ศึกษาประโยชน์ของผักและการปลูกผักในโรงเรียน แล้วออกแบบโปสเตอร์หรือคลิปสั้นเพื่อเชิญชวนเพื่อนและผู้ปกครองให้เห็นคุณค่าของโครงการ จากนั้นนำเสนอผลงานต่อครูและเพื่อน โดยพิจารณาคุณภาพจากความถูกต้องของเนื้อหา ความน่าสนใจ ความเหมาะสมกับผู้รับสาร และความชัดเจนในการสื่อสาร'
+  ],
+  E2:[
+   'ตัวเลือก 1: Rubric 4 ระดับ ประเมิน 4 ด้าน ได้แก่ (1) การเลือกเครื่องมือ การวัด และความถูกต้องของข้อมูล (2) การใช้ข้อมูลเพื่อเปรียบเทียบทางเลือกและตัดสินใจ (3) การอธิบายวิธีคิดและเหตุผล และ (4) การตรวจสอบและปรับปรุงงาน',
+   'ตัวเลือก 2: Rubric ที่เน้นความสวยงามของแผนผัง ความประณีต ความคิดสร้างสรรค์ และความสมบูรณ์ของชิ้นงาน'
+  ],
+  E3:[
+   'ตัวเลือก 1: ระหว่างผู้เรียนคาดคะเน วัด และบันทึกข้อมูล ครูสังเกต ตรวจบันทึก ซักถามเหตุผล ให้ข้อมูลย้อนกลับเฉพาะจุด และเปิดโอกาสให้ทดลองใหม่หรือปรับกิจกรรมก่อนทำขั้นต่อไป',
+   'ตัวเลือก 2: ครูตรวจใบงานและแบบฝึกหัดทุกครั้ง ให้คะแนน แล้วรวมเป็นคะแนนปลายหน่วย โดยผู้เรียนทำกิจกรรมต่อไปตามแผนเดิม',
+   'ตัวเลือก 3: ครูตรวจร่างผลงานว่าครบหรือไม่ แจ้งคะแนน แต่ไม่ให้ข้อมูลย้อนกลับและไม่เปิดโอกาสให้ปรับร่างก่อนส่งฉบับสุดท้าย'
+  ],
+  E4:[
+   'ตัวเลือก 1: เมื่อสิ้นสุดหน่วย ผู้เรียนปฏิบัติภาระงานจริง ใช้ข้อมูลจากการสำรวจและการวัด จัดทำผลงานและอธิบายเหตุผล จากนั้นครูใช้เกณฑ์คุณภาพที่สอดคล้องกับ CLO สรุประดับการบรรลุผล',
+   'ตัวเลือก 2: เมื่อสิ้นสุดหน่วย ผู้เรียนทำแบบทดสอบปรนัยเรื่องเครื่องมือ หน่วยวัด และการเปรียบเทียบ แล้วใช้คะแนนจากแบบทดสอบเพียงอย่างเดียวสรุปการบรรลุ CLO',
+   'ตัวเลือก 3: ครูประเมินผลงานจากความเรียบร้อย ความสวยงาม ความคิดสร้างสรรค์ และการส่งงานตรงเวลา แล้วใช้คะแนนรวมตัดสินการบรรลุผล'
+  ],
+  E5:[
+   'ตัวเลือก 1: ระหว่างทำงาน ผู้เรียนใช้รายการตรวจสอบพิจารณางานของตนเอง ตรวจความเหมาะสมของเครื่องมือ ความสมเหตุสมผลของข้อมูล การใช้ข้อมูล และเหตุผลในการตัดสินใจ แล้วระบุสิ่งที่ต้องปรับและลงมือแก้ไขก่อนส่ง',
+   'ตัวเลือก 2: ผู้เรียนให้คะแนนความพึงพอใจต่อผลงานตนเอง 1–5 แล้วส่งคะแนนให้ครู โดยไม่ต้องระบุเหตุผลหรือปรับปรุงงาน',
+   'ตัวเลือก 3: ครูตรวจผลงานและเขียนข้อเสนอแนะให้ผู้เรียนอ่าน แต่ผู้เรียนไม่ต้องประเมินตนเองหรือใช้ข้อมูลนั้นวางแผนปรับการเรียนรู้'
+  ]
+ }
+};
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function captureSnapshot(){return{screen:state.screen,s2Index:state.s2Index,ksavIndex:state.ksavIndex,selectedChoice:state.selectedChoice}}
+function startGame(){
+ const name=document.getElementById('playerName').value.trim(),org=document.getElementById('playerOrg').value.trim();
+ const err=document.getElementById('welcomeError');
+ if(!name||!org){err.innerHTML='กรุณากรอก <strong>ชื่อ–สกุล</strong> และ <strong>โรงเรียน / หน่วยงาน</strong> ก่อนเริ่มกิจกรรม';err.classList.add('show');return}
+ err.classList.remove('show');state.participant={name,org};document.body.classList.add('playing');state.started=Date.now();metrics.startedAt=new Date().toISOString();showScreen('brief')
+}
+function showScreen(id,opts={}){
+  if(!opts.fromBack&&!state.reviewMode&&state.screen&&state.screen!==id&&state.screen!=='welcome')state.history.push(captureSnapshot());
+  document.querySelectorAll('.screen').forEach(x=>{x.classList.remove('active');x.setAttribute('aria-hidden','true')});
+  const target=document.getElementById(id);target.classList.add('active');target.setAttribute('aria-hidden','false');document.getElementById('welcome').style.display=(id==='welcome')?'':'none';state.screen=id;
+  window.scrollTo({top:0,behavior:'smooth'});updateProgress();updateBackButton();
+  const reviewing=state.reviewMode&&opts.fromBack;
+  if(id==='s1match'&&!reviewing)renderMatch('s1');
+  if(id==='s1clo')renderCLO();
+  if(id==='s1ksav')renderKSAV();
+  if(id==='s1order')renderOrder('s1');
+  if(id==='s2match'&&!reviewing)renderMatch('s2');
+  if(id==='s2choice')renderS2Mission();
+  if(id==='s3match'&&!reviewing)renderMatch('s3');
+  if(id==='s3order')renderOrder('s3');
+  if(id==='final'){prepareFinalScreen();setTimeout(()=>submitGameResult(false),250)}
+}
+function restoreSnapshot(snap){if(!snap)return;state.s2Index=snap.s2Index??state.s2Index;state.ksavIndex=snap.ksavIndex??state.ksavIndex;state.selectedChoice=snap.selectedChoice??null;showScreen(snap.screen,{fromBack:true})}
+function goBack(){
+  if(!state.history.length)return;
+  if(!state.reviewMode){state.reviewMode=true;state.returnPoint=captureSnapshot();state.reviewHistoryBase=[...state.history];document.body.classList.add('reviewing')}
+  const prev=state.history.pop();restoreSnapshot(prev);updateBackButton();
+}
+function returnToCurrent(){if(!state.reviewMode||!state.returnPoint)return;const current=state.returnPoint;state.reviewMode=false;state.history=[...state.reviewHistoryBase];state.reviewHistoryBase=[];state.returnPoint=null;document.body.classList.remove('reviewing');restoreSnapshot(current);updateBackButton()}
+function updateBackButton(){const btn=document.getElementById('backBtn');if(!btn)return;btn.disabled=state.history.length===0;const rb=document.getElementById('returnBtn');if(rb)rb.style.display=state.reviewMode?'inline-flex':''}
+function updateProgress(){let stage=0;if(state.screen.startsWith('s1'))stage=1;if(state.screen.startsWith('s2'))stage=2;if(state.screen.startsWith('s3'))stage=3;if(state.screen==='final')stage=4;const parts=['ผลลัพธ์','หลักฐาน','เส้นทาง'];document.getElementById('globalProgress').innerHTML=parts.map((p,i)=>`<span class="dot ${stage>i+1?'done':stage===i+1?'on':''}"></span><span>${p}</span>${i<2?'<span>→</span>':''}`).join('')}
+function openModal(title,html){document.getElementById('modalTitle').textContent=title;document.getElementById('modalBody').innerHTML=html;document.getElementById('modal').classList.add('show')}
+function closeModal(){document.getElementById('modal').classList.remove('show')}
+function openMissionBrief(){openModal('ข้อมูลตั้งต้น','<strong>ตัวชี้วัด:</strong> เลือกใช้เครื่องมือวัด คาดคะเน เปรียบเทียบ และแก้โจทย์ปัญหาเกี่ยวกับความยาว<br><br><strong>ปัญหาที่ต้องการพัฒนา:</strong> ผู้เรียนวัดตามโจทย์ได้ แต่ยังใช้ความรู้ในสถานการณ์จริงเพื่อเลือกเครื่องมือ ใช้ข้อมูลวางแผน ตัดสินใจ และอธิบายเหตุผลได้ไม่ชัด<br><br><strong>หลักในการเขียน CLO รอบนี้:</strong> เขียนเป็นความสามารถในการใช้ความรู้ในสถานการณ์จริง โดยไม่ระบุบริบทหรือภารกิจเฉพาะ เพราะบริบทจะไปปรากฏใน Performance Task')}
+
+function renderMatch(key){const set=matchSets[key],zoneEl=document.getElementById(key+'zones'),bank=document.getElementById(key+'bank');state.selectedCard=null;zoneEl.innerHTML=set.zones.map(z=>`<div class="dropzone" data-zone="${z[0]}" onclick="zoneClick('${key}','${z[0]}')" ondragover="event.preventDefault();this.classList.add('ready')" ondragleave="this.classList.remove('ready')" ondrop="dropCard(event,'${key}','${z[0]}')"><div class="match-label">ช่องเป้าหมาย</div><h3>${z[1]}</h3><div class="zone-items"></div></div>`).join('');bank.innerHTML=shuffle([...set.cards]).map(c=>cardHTML(key,c)).join('');document.getElementById(key+'hint').className='hintbox';document.getElementById(key+'fb').className='feedback'}
+function cardHTML(key,c){return `<div class="card draggable" draggable="true" data-card="${c.id}" onclick="selectCard('${key}','${c.id}')" ondragstart="dragCard(event,'${c.id}')"><div class="match-label">เปิดอ่านก่อนจับคู่</div><div class="card-title">${esc(c.short)}</div><div class="card-note"><span class="playing-note">อ่านข้อมูลจริงในบัตร แล้วจึงตัดสินหน้าที่</span><br><button class="btn secondary small" type="button" onclick="event.stopPropagation();openCardDetail('${key}','${c.id}')">ดูรายละเอียด</button></div></div>`}
+function openCardDetail(key,id){const set=matchSets[key],c=set.cards.find(x=>x.id===id);if(!c)return;let items=[];if(matchDetailData[key]&&matchDetailData[key][id])items=matchDetailData[key][id];else if(c.detail)items=[c.detail];const html=items.length>1?`<p class="subtle">บัตรนี้ประกอบด้วยข้อมูลต่อไปนี้</p><ol class="detail-list">${items.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>`:`<p>${esc(items[0]||'ไม่มีรายละเอียดเพิ่มเติม')}</p>`;openModal('รายละเอียด '+id,html)}
+function selectCard(key,id){if(state.reviewMode)return;document.querySelectorAll(`#${key}bank .card, #${key}zones .placed`).forEach(x=>x.classList.remove('selected'));const el=document.querySelector(`[data-card="${id}"]`);if(el)el.classList.add('selected');state.selectedCard={key,id}}
+function zoneClick(key,zone){if(state.reviewMode)return;if(!state.selectedCard||state.selectedCard.key!==key)return;placeCard(key,state.selectedCard.id,zone);state.selectedCard=null}
+function dragCard(e,id){e.dataTransfer.setData('text/plain',id)}
+function dropCard(e,key,zone){if(state.reviewMode)return;e.preventDefault();e.currentTarget.classList.remove('ready');const id=e.dataTransfer.getData('text/plain');placeCard(key,id,zone)}
+function placeCard(key,id,zone){if(state.reviewMode)return;const set=matchSets[key],c=set.cards.find(x=>x.id===id);if(!c)return;document.querySelectorAll(`[data-card="${id}"]`).forEach(x=>x.remove());const zoneEl=document.querySelector(`#${key}zones [data-zone="${zone}"] .zone-items`);const label=c.short.replace(/^(ชุด R\d|E\d|บัตรกิจกรรม) · /,'');zoneEl.innerHTML+=`<div class="placed" draggable="true" data-card="${id}" data-placed-zone="${zone}" onclick="selectCard('${key}','${id}')" ondragstart="dragCard(event,'${id}')"><div>${esc(label)}</div><button class="detail-btn" type="button" onclick="event.stopPropagation();openCardDetail('${key}','${id}')">ดูรายละเอียด</button></div>`}
+function resetMatch(key){if(state.reviewMode)return;renderMatch(key)}
+function giveMatchHint(key){const set=matchSets[key];if(!state.reviewMode)metrics.hintLevelUsed[key]=(metrics.hintLevelUsed[key]||0)+1;const n=Math.min((state.hintUses[key]||0),set.hints.length-1);state.hintUses[key]=(state.hintUses[key]||0)+1;const el=document.getElementById(key+'hint');el.textContent=set.hints[n];el.classList.add('show')}
+function checkMatch(key){if(state.reviewMode){showWarn(key+'fb','ขณะนี้อยู่ในโหมดทบทวน กด “กลับหน้าปัจจุบัน →” เพื่อทำเกมต่อ');return}const set=matchSets[key];metrics.attemptCount[key]=(metrics.attemptCount[key]||0)+1;let ok=true;set.cards.forEach(c=>{const el=document.querySelector(`#${key}zones [data-card="${c.id}"]`);if(!el||el.dataset.placedZone!==c.correct)ok=false});const fb=document.getElementById(key+'fb');if(ok){if(metrics.attemptCount[key]===1)metrics.firstTryCorrect[key]=true;fb.className='feedback good';fb.innerHTML='✓ ถูกต้อง คุณจัดองค์ประกอบได้สอดคล้องกับหน้าที่ของแต่ละบัตรแล้ว';setTimeout(()=>{if(key==='s2'){state.s2Index=0;showScreen(set.next)}else showScreen(set.next)},700)}else{metrics.firstTryCorrect[key]=metrics.firstTryCorrect[key]||false;fb.className='feedback warn';fb.innerHTML='ลองพิจารณาอีกครั้ง ยังมีอย่างน้อยหนึ่งบัตรที่หน้าที่ไม่ตรงกับช่องที่เลือก ระบบยังไม่เฉลยให้ เพื่อให้คุณลองปรับด้วยตนเอง'}}
+
+function renderCLO(){state.cloHintLevel=0;const saved=state.cloResponse;const el=document.getElementById('cloChoices'),items=shuffle([...cloData]);el.innerHTML=items.map((c,i)=>`<div class="choice-card ${saved===c.id?'selected':''}" data-choice="${c.id}" role="button" tabindex="0" onclick="selectChoiceCard(this,'${c.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectChoiceCard(this,'${c.id}')}"><div class="option-badge">ตัวเลือก ${i+1}</div><div class="choice-text">${esc(c.short)}</div><button type="button" class="detail-btn" onclick="event.stopPropagation();openChoiceDetail('clo','${c.id}',${i+1})">ดูข้อความเต็ม</button></div>`).join('');state.selectedChoice=saved||null;document.getElementById('cloFb').className='feedback';document.getElementById('cloHint').className='hintbox';if(state.reviewMode&&saved){const c=cloData.find(x=>x.id===saved);showGood('cloFb','คำตอบที่ผ่านแล้ว: '+c.why)}}
+function giveCLOHint(){if(!state.reviewMode)metrics.hintLevelUsed.clo=(metrics.hintLevelUsed.clo||0)+1;const hints=['CLO ควรบอก “ความสามารถปลายทาง” ที่เกิดจากกลุ่มตัวชี้วัด และแสดงว่าผู้เรียนนำความรู้ไปใช้ในสถานการณ์จริงได้ โดยยังไม่ผูกกับบริบทหรือชิ้นงานเฉพาะ','ลองตัดข้อความที่ (1) เพิ่มเนื้อหาเกินตัวชี้วัด หรือ (2) หยุดเพียงการทำตามโจทย์/แบบทดสอบ แล้วมองหาข้อที่ใช้ข้อมูลเพื่อวางแผน ตัดสินใจ และอธิบายเหตุผล'];const n=Math.min(state.cloHintLevel,hints.length-1);state.cloHintLevel++;const e=document.getElementById('cloHint');e.textContent=hints[n];e.classList.add('show')}
+function selectChoiceCard(el,id){if(state.reviewMode)return;document.querySelectorAll('.choice-card').forEach(c=>c.classList.remove('selected'));el.classList.add('selected');state.selectedChoice=id}
+function openChoiceDetail(kind,id,num){let item=null;if(kind==='clo')item=cloData.find(x=>x.id===id);else{const m=s2Missions[state.s2Index];item=m&&m.options.find(x=>x.id===id)}if(!item)return;let body='';if(item.detailHtml){body+=item.detailHtml;}else if(item.detail){body+=`<div class="ref-card"><h3>รายละเอียดฉบับเต็ม</h3><p class="fulltext">${esc(item.detail)}</p></div>`;}else{body='<p>ไม่มีรายละเอียดเพิ่มเติม</p>'}openModal(`รายละเอียดตัวเลือก ${num}`,body)}
+function checkChoice(kind){if(kind!=='clo')return;if(state.reviewMode){showWarn('cloFb','ขณะนี้อยู่ในโหมดทบทวน กด “กลับหน้าปัจจุบัน →” เพื่อทำเกมต่อ');return}if(!state.selectedChoice){showWarn('cloFb','เลือกคำตอบก่อนครับ');return}metrics.attemptCount.clo=(metrics.attemptCount.clo||0)+1;const c=cloData.find(x=>x.id===state.selectedChoice);if(c.correct){state.cloResponse=c.id;if(metrics.attemptCount.clo===1)metrics.firstTryCorrect.clo=true;showGood('cloFb','✓ '+c.why);setTimeout(()=>showScreen('s1ksav'),850)}else{showWarn('cloFb','ลองพิจารณาอีกครั้ง: '+c.why)}}
+
+function renderKSAV(){document.getElementById('ksavCloRef').textContent=correctCLO.detail;const item=ksavData[state.ksavIndex];document.getElementById('ksavCounter').textContent=`${state.ksavIndex+1} / ${ksavData.length}`;document.getElementById('ksavText').textContent=item.text;state.ksavType=null;state.ksavNeed=null;document.getElementById('ksavTypeBtns').innerHTML=['K','S','A','V'].map(x=>`<button class="pill" onclick="pickKSAV('type','${x}',this)">${x}</button>`).join('');document.getElementById('ksavNeedBtns').innerHTML=`<button class="pill" onclick="pickKSAV('need','yes',this)">จำเป็น</button><button class="pill" onclick="pickKSAV('need','no',this)">ไม่จำเป็นต่อ CLO นี้</button>`;document.getElementById('ksavFb').className='feedback'}
+function pickKSAV(kind,val,btn){if(state.reviewMode)return;if(kind==='type'){state.ksavType=val;document.querySelectorAll('#ksavTypeBtns .pill').forEach(x=>x.classList.remove('active'))}else{state.ksavNeed=val;document.querySelectorAll('#ksavNeedBtns .pill').forEach(x=>x.classList.remove('active'))}btn.classList.add('active')}
+function giveKSAVHint(){if(!state.reviewMode)metrics.hintLevelUsed.ksav=(metrics.hintLevelUsed.ksav||0)+1;showWarn('ksavFb','ใช้คำถามช่วยคิด: “สิ่งนี้เป็นความรู้ ทักษะ เจตคติ หรือคุณค่า?” แล้วถามต่อว่า “ถ้าตัดสิ่งนี้ออก ผู้เรียนยังปฏิบัติ CLO ได้อย่างมีคุณภาพใกล้เคียงเดิมหรือไม่?”')}
+function submitKSAV(){if(state.reviewMode){showWarn('ksavFb','ขณะนี้อยู่ในโหมดทบทวน กด “กลับหน้าปัจจุบัน →” เพื่อทำเกมต่อ');return}if(!state.ksavType||!state.ksavNeed){showWarn('ksavFb','เลือกทั้งประเภท K–S–A–V และความจำเป็นต่อ CLO ก่อนครับ');return}const item=ksavData[state.ksavIndex],key='ksav_'+item.id;metrics.attemptCount[key]=(metrics.attemptCount[key]||0)+1;const typeOK=state.ksavType===item.type,needOK=state.ksavNeed===item.need;if(typeOK&&needOK){if(metrics.attemptCount[key]===1)metrics.firstTryCorrect[key]=true;state.ksavResponses[item.id]={type:state.ksavType,need:state.ksavNeed};showGood('ksavFb','✓ '+item.explain);setTimeout(()=>{if(state.ksavIndex>=ksavData.length-1){showScreen('s1order')}else{state.history.push(captureSnapshot());state.ksavIndex++;renderKSAV();updateBackButton()}},650)}else{let msg='ลองพิจารณาอีกครั้ง: ';if(!typeOK&&!needOK)msg+='ทั้งการจำแนกประเภทและความจำเป็นยังควรทบทวน';else if(!typeOK)msg+='ประเภท K–S–A–V ยังควรทบทวน';else msg+='ความจำเป็นต่อ CLO ยังควรทบทวน';showWarn('ksavFb',msg)}}
+
+function renderOrder(key){if(key==='s1'){const ref=document.getElementById('s1orderCloRef');if(ref)ref.textContent=correctCLO.detail;}const el=document.getElementById(key+'orderList');el.innerHTML=orderState[key].map((x,i)=>{const detail=key==='s3'?`<button class="order-detail" type="button" onclick="event.stopPropagation();openOrderDetail('${x.id}')">ดูรายละเอียดกิจกรรม</button>`:'';return `<div class="order-item" draggable="true" data-order-id="${x.id}" ondragstart="orderDrag(event,'${key}','${x.id}')" ondragover="event.preventDefault()" ondrop="orderDrop(event,'${key}','${x.id}')"><div class="handle">☰</div><div class="order-main"><div><strong>${i+1}.</strong> ${esc(x.text)}</div>${detail}</div><div class="order-actions"><button onclick="moveOrder('${key}',${i},-1)">↑</button><button onclick="moveOrder('${key}',${i},1)">↓</button></div></div>`}).join('');document.getElementById(key+'orderFb').className='feedback'}
+function openOrderDetail(id){const c=matchSets.s3.cards.find(x=>x.id===id);if(!c)return;openModal('รายละเอียดกิจกรรม',`<div class="ref-card"><h3>${esc(c.short.replace(/^กิจกรรม · /,''))}</h3><p class="fulltext">${esc(c.detail)}</p></div>`)}
+function moveOrder(key,i,d){if(state.reviewMode)return;const j=i+d;if(j<0||j>=orderState[key].length)return;[orderState[key][i],orderState[key][j]]=[orderState[key][j],orderState[key][i]];renderOrder(key)}
+function orderDrag(e,key,id){e.dataTransfer.setData('text/plain',JSON.stringify({key,id}))}
+function orderDrop(e,key,targetId){if(state.reviewMode)return;e.preventDefault();let data;try{data=JSON.parse(e.dataTransfer.getData('text/plain'))}catch{return}if(data.key!==key)return;const arr=orderState[key],from=arr.findIndex(x=>x.id===data.id),to=arr.findIndex(x=>x.id===targetId);const [m]=arr.splice(from,1);arr.splice(to,0,m);renderOrder(key)}
+function orderHint(fb){metrics.hintLevelUsed[fb]=(metrics.hintLevelUsed[fb]||0)+1;const isS3=fb==='s3orderFb';showWarn(fb,isS3?'พิจารณาความสัมพันธ์กับ Sub-CLO ด้านซ้าย แล้วเรียงกิจกรรมจากการสร้างข้อมูล → ตรวจสอบ/ตีความข้อมูล → ใช้ข้อมูลสร้างทางเลือกและตัดสินใจ → บูรณาการในภาระงานปลายทาง':'คิดจากพัฒนาการของ Sub-CLO ว่า ผู้เรียนต้องสร้างข้อมูล → ตรวจสอบและตีความข้อมูล → ใช้ข้อมูลเปรียบเทียบทางเลือกและตัดสินใจ')}
+function checkOrder(key){if(state.reviewMode){showWarn(key+'orderFb','ขณะนี้อยู่ในโหมดทบทวน กด “กลับหน้าปัจจุบัน →” เพื่อทำเกมต่อ');return}const id=key+'order',actual=orderState[key].map(x=>x.id),correct=correctOrders[key];metrics.attemptCount[id]=(metrics.attemptCount[id]||0)+1;const ok=actual.every((x,i)=>x===correct[i]);const fb=key+'orderFb';if(ok){if(metrics.attemptCount[id]===1)metrics.firstTryCorrect[id]=true;showGood(fb,'✓ ลำดับสอดคล้องกับพัฒนาการของความสามารถ');setTimeout(()=>showScreen(key==='s1'?'s1summary':'final'),750)}else showWarn(fb,'ยังมีบางช่วงที่ลำดับไม่สัมพันธ์กับฐานความสามารถ ลองถามว่า “ก่อนทำสิ่งนี้ ผู้เรียนต้องทำอะไรได้แล้ว?”')}
+
+function renderS2Sidebar(){
+ const m=s2Missions[state.s2Index];
+ const sidebar=document.getElementById('s2sidebar');
+ const cloCard=`<div class="ref-card"><span class="tag">ข้อมูลอ้างอิง</span><h3>CLO ของหน่วย</h3><p class="fulltext">${esc(correctCLO.detail)}</p></div>`;
+ const ptCard=`<div class="ref-card"><h3>Performance Task ที่เหมาะสม</h3><p class="fulltext">${esc(correctPTSummary)}</p><p class="mini">ภาระงานนี้เป็นบริบทที่ใช้ให้ผู้เรียนแสดง CLO ในสถานการณ์จริง</p></div>`;
+ const noteMap={
+  E1:'<div class="ref-card"><h3>ใช้ข้อมูลนี้เพื่อเลือก Performance Task</h3><p class="mini">ภาระงานที่ดีต้องเปิดโอกาสให้ผู้เรียนแสดง CLO ได้จริง จึงควรเห็นทั้งการวัด การใช้ข้อมูล การตัดสินใจ และการอธิบายเหตุผล</p></div>',
+  E2:'<div class="ref-card"><h3>ใช้ข้อมูลนี้เพื่อเลือก Rubric</h3><p class="mini">Rubric ต้องวัดคุณภาพเดียวกับที่ CLO และ Performance Task ต้องการ ไม่ใช่วัดเพียงความสวยงามของชิ้นงาน</p></div>',
+  E3:'<div class="ref-card"><h3>ใช้ข้อมูลนี้เพื่อคิดเรื่อง AfL</h3><p class="mini">พิจารณาว่าครูนำข้อมูลระหว่างเรียนไปช่วยให้ผู้เรียนพัฒนาก่อนถึงปลายทางหรือไม่</p></div>',
+  E4:'<div class="ref-card"><h3>ใช้ข้อมูลนี้เพื่อคิดเรื่อง AoL</h3><p class="mini">หลักฐานปลายทางควรยืนยันได้ว่าผู้เรียนบรรลุ CLO โดยใช้ภาระงานและเกณฑ์ที่สอดคล้องกัน</p></div>',
+  E5:'<div class="ref-card"><h3>ใช้ข้อมูลนี้เพื่อคิดเรื่อง AaL</h3><p class="mini">มองหาสถานการณ์ที่ผู้เรียนใช้เกณฑ์หรือข้อมูลมาตรวจสอบและปรับงานของตนเอง</p></div>'
+ };
+ let html=cloCard;
+ if(['E2','E3','E4','E5'].includes(m.id)) html += ptCard;
+ html += noteMap[m.id] || '';
+ sidebar.innerHTML=html;
+}
+
+function renderS2Mission(){const m=s2Missions[state.s2Index],saved=state.s2Responses[m.id]||null,items=shuffle([...m.options]);document.getElementById('s2choiceKicker').textContent=`Stage 2 · Mission ${state.s2Index+2} / ${s2Missions.length+1}`;document.getElementById('s2choiceTitle').textContent=m.title;document.getElementById('s2choiceSub').textContent=m.sub;renderS2Sidebar();document.getElementById('s2choiceList').innerHTML=items.map((o,i)=>`<div class="choice-card ${saved===o.id?'selected':''}" data-choice="${o.id}" role="button" tabindex="0" onclick="selectChoiceCard(this,'${o.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectChoiceCard(this,'${o.id}')}"><div class="option-badge">ตัวเลือก ${i+1}</div><div class="choice-text">${esc(o.text)}</div><button type="button" class="detail-btn" onclick="event.stopPropagation();openChoiceDetail('s2','${o.id}',${i+1})">ดูรายละเอียด</button></div>`).join('');state.selectedChoice=saved||null;document.getElementById('s2choiceFb').className='feedback';if(state.reviewMode&&saved){const o=m.options.find(x=>x.id===saved);showGood('s2choiceFb','คำตอบที่ผ่านแล้ว: '+o.fb)}}
+function giveS2Hint(){const m=s2Missions[state.s2Index];if(!state.reviewMode)metrics.hintLevelUsed[m.id]=(metrics.hintLevelUsed[m.id]||0)+1;showWarn('s2choiceFb',m.hint)}
+function checkS2Choice(){const m=s2Missions[state.s2Index];if(state.reviewMode){showWarn('s2choiceFb','ขณะนี้อยู่ในโหมดทบทวน กด “กลับหน้าปัจจุบัน →” เพื่อทำเกมต่อ');return}if(!state.selectedChoice){showWarn('s2choiceFb','เลือกคำตอบก่อนครับ');return}metrics.attemptCount[m.id]=(metrics.attemptCount[m.id]||0)+1;const o=m.options.find(x=>x.id===state.selectedChoice);if(o.correct){state.s2Responses[m.id]=o.id;if(metrics.attemptCount[m.id]===1)metrics.firstTryCorrect[m.id]=true;showGood('s2choiceFb','✓ '+o.fb);setTimeout(()=>{if(state.s2Index>=s2Missions.length-1){showScreen('s2summary')}else{state.history.push(captureSnapshot());state.s2Index++;renderS2Mission();updateBackButton()}},750)}else showWarn('s2choiceFb','ลองพิจารณาอีกครั้ง: '+o.fb)}
+
+function showGood(id,msg){const e=document.getElementById(id);e.className='feedback good';e.innerHTML=msg}
+function showWarn(id,msg){const e=document.getElementById(id);e.className='feedback warn';e.innerHTML=msg}
+function endpointConfigured(){return GOOGLE_SHEET_ENDPOINT && !GOOGLE_SHEET_ENDPOINT.includes('PASTE_GOOGLE_APPS_SCRIPT')}
+function prepareFinalScreen(){
+ metrics.finishedAt=metrics.finishedAt||new Date().toISOString();metrics.elapsedSeconds=Math.round((Date.now()-state.started)/1000);
+ const p=document.getElementById('participantSummary');if(p)p.textContent=`${state.participant.name} · ${state.participant.org}`;
+ if(!endpointConfigured()){setSubmitStatus('warn','ยังไม่ได้เชื่อม Google Sheets','ไฟล์เกมพร้อมใช้งาน แต่ต้องนำ Web App URL จาก Apps Script มาใส่ในตัวแปร GOOGLE_SHEET_ENDPOINT ก่อนจึงจะบันทึกออนไลน์ได้')}
+}
+function setSubmitStatus(kind,title,msg){const el=document.getElementById('submitStatus');if(!el)return;el.className='submit-status '+kind;el.innerHTML=`<strong>${title}</strong><span>${msg}</span>`}
+function buildResultPayload(){
+ const attempts=metrics.attemptCount,totalAttempts=Object.values(attempts).reduce((a,b)=>a+(Number(b)||0),0);
+ const hints=metrics.hintLevelUsed,totalHints=Object.values(hints).reduce((a,b)=>a+(Number(b)||0),0);
+ const firstTry=Object.values(metrics.firstTryCorrect).filter(Boolean).length;
+ const ksavKeys=Object.keys(attempts).filter(k=>k.startsWith('ksav_R2'));
+ return {
+  gameVersion:GAME_VERSION,sessionId:state.sessionId,name:state.participant.name,organization:state.participant.org,
+  startedAt:metrics.startedAt,finishedAt:metrics.finishedAt||new Date().toISOString(),elapsedSeconds:metrics.elapsedSeconds||Math.round((Date.now()-state.started)/1000),
+  completed:true,totalAttempts,totalHints,firstTryCorrectCount:firstTry,
+  s1MatchAttempts:attempts.s1||0,cloAttempts:attempts.clo||0,ksavAttempts:ksavKeys.reduce((a,k)=>a+(attempts[k]||0),0),s1OrderAttempts:attempts.s1order||0,
+  s2MatchAttempts:attempts.s2||0,performanceTaskAttempts:attempts.E1||0,rubricAttempts:attempts.E2||0,aalAttempts:attempts.E5||0,aflAttempts:attempts.E3||0,aolAttempts:attempts.E4||0,
+  s3MatchAttempts:attempts.s3||0,s3OrderAttempts:attempts.s3order||0,
+  detail:{attemptCount:metrics.attemptCount,hintLevelUsed:metrics.hintLevelUsed,firstTryCorrect:metrics.firstTryCorrect,cloResponse:state.cloResponse,ksavResponses:state.ksavResponses,s2Responses:state.s2Responses},
+  userAgent:navigator.userAgent
+ }
+}
+async function submitGameResult(force=false){
+ if(!endpointConfigured()){prepareFinalScreen();return}
+ if(state.submissionInFlight||(!force&&state.submitted))return;
+ state.submissionInFlight=true;setSubmitStatus('loading','กำลังบันทึกผล','กำลังส่งข้อมูลไปยัง Google Sheets...');
+ try{
+  const payload=buildResultPayload();
+  await fetch(GOOGLE_SHEET_ENDPOINT,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
+  state.submitted=true;setSubmitStatus('ok','บันทึกผลแล้ว','ระบบส่งข้อมูลผลการเล่นไปยัง Google Sheets แล้ว');
+ }catch(err){setSubmitStatus('warn','ส่งข้อมูลไม่สำเร็จ','ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตและ Web App URL แล้วกด “ส่งข้อมูลอีกครั้ง”')}
+ finally{state.submissionInFlight=false}
+}
+
+function openStats(){
+ metrics.finishedAt=new Date().toISOString();metrics.elapsedSeconds=Math.round((Date.now()-state.started)/1000);
+ const sec=metrics.elapsedSeconds,min=Math.floor(sec/60),rem=String(sec%60).padStart(2,'0');
+ const attempts=metrics.attemptCount,totalAttempts=Object.values(attempts).reduce((a,b)=>a+b,0),totalHints=Object.values(metrics.hintLevelUsed).reduce((a,b)=>a+b,0);
+ const firstTry=Object.values(metrics.firstTryCorrect).filter(Boolean).length;
+ const labels={s1:'Stage 1 · จำแนกชุด R1–R3',clo:'Stage 1 · เลือก CLO',s1order:'Stage 1 · เรียง Sub-CLO',s2:'Stage 2 · จำแนก E1–E5',E1:'Stage 2 · Performance Task',E2:'Stage 2 · เกณฑ์คุณภาพ (Rubric)',E3:'Stage 2 · AfL',E4:'Stage 2 · AoL',E5:'Stage 2 · AaL',s3:'Stage 3 · จับคู่ความสามารถกับกิจกรรม',s3order:'Stage 3 · เรียง Learning Path'};
+ const ksavKeys=Object.keys(attempts).filter(k=>k.startsWith('ksav_R2'));
+ const rows=[];
+ ['s1','clo','s1order','s2','E1','E2','E3','E4','E5','s3','s3order'].forEach(k=>{if(attempts[k]!=null)rows.push({label:labels[k],attempts:attempts[k],first:metrics.firstTryCorrect[k]===true?'✓':'—',hints:metrics.hintLevelUsed[k]||0})});
+ if(ksavKeys.length){rows.splice(2,0,{label:'Stage 1 · K–S–A–V (8 บัตร)',attempts:ksavKeys.reduce((a,k)=>a+attempts[k],0),first:`${ksavKeys.filter(k=>metrics.firstTryCorrect[k]===true).length}/8`,hints:metrics.hintLevelUsed.ksav||0})}
+ const table=rows.map(r=>`<tr><td>${r.label}</td><td class="num">${r.attempts}</td><td class="num">${r.first}</td><td class="num">${r.hints}</td></tr>`).join('');
+ const html=`<div class="stats-grid"><div class="stat-card"><strong>${min}:${rem}</strong><span>เวลาที่ใช้</span></div><div class="stat-card"><strong>${totalAttempts}</strong><span>จำนวนครั้งที่ตอบ/ตรวจ</span></div><div class="stat-card"><strong>${firstTry}</strong><span>ภารกิจที่ผ่านครั้งแรก</span></div><div class="stat-card"><strong>${totalHints}</strong><span>จำนวนครั้งที่ใช้คำใบ้</span></div></div><table class="stats-table"><thead><tr><th>ภารกิจ</th><th class="num">ครั้งที่ลอง</th><th class="num">ผ่านครั้งแรก</th><th class="num">คำใบ้</th></tr></thead><tbody>${table}</tbody></table><p class="stats-note">สรุปนี้ใช้เพื่อดูว่าภารกิจใดใช้เวลาหรือคำใบ้มาก แสดงเป็นภาษาคนอ่าน ไม่แสดงเป็นคะแนน และยังไม่ส่งข้อมูลออกจากเครื่องหรือเชื่อม Google Sheets</p>`;
+ openModal('สรุปการเล่น',html);
+}
+function buildAdvisorHandoffText(){
+ const who=[state.participant.name,state.participant.org].filter(Boolean).join(' · ');
+ const header=who?`ผู้เข้าอบรม: ${who}\n\n`:'';
+ return `${header}ฉันเพิ่งจบเกม UbD–CBE Challenge และต้องการนำสิ่งที่เรียนรู้ไปออกแบบ “หน่วยการเรียนรู้ของตนเอง” ต่อกับ AI ที่ปรึกษาการพัฒนาคุณภาพการศึกษา
+
+สิ่งที่ฉันได้ทบทวนจากเกม:
+• Stage 1: CLO → Sub-CLO → K–S–A–V
+• Stage 2: Performance Task → Rubric → หลักฐานการประเมินอื่น (AaL / AfL / AoL)
+• Stage 3: เส้นทางการเรียนรู้จากการสร้างฐาน → ตรวจสอบข้อมูล → ตัดสินใจ → บูรณาการ
+
+โปรดช่วยฉันออกแบบหน่วยของตนเองต่อ โดยเริ่มจากการสัมภาษณ์ข้อมูลที่จำเป็น เช่น ระดับชั้น/รายวิชา ตัวชี้วัดหรือผลลัพธ์ที่ต้องการ บริบทผู้เรียน ปัญหา หลักฐานที่มี และข้อจำกัด แล้วดำเนินการเป็นลำดับ:
+1) จัดกลุ่มตัวชี้วัดและสกัด K–S–A–V เท่าที่มีฐานรองรับ
+2) สังเคราะห์ Big Idea → EU → EQ → CLO
+3) แตก CLO เป็น Sub-CLO และวิเคราะห์ K–S–A–V ที่จำเป็น
+4) ออกแบบ Performance Task, Rubric และ Other Evidence ให้สอดคล้องกับ CLO
+5) ออกแบบเส้นทางการเรียนรู้ที่พาผู้เรียนไปถึง CLO
+
+กรุณาถามทีละประเด็น ไม่ถามซ้ำข้อมูลที่ฉันให้แล้ว และหากยังไม่มีข้อมูลเพียงพอให้ระบุว่า “ยังไม่แน่ใจ” แทนการแต่งข้อมูลขึ้นเอง`;
+}
+function fallbackCopyText(text){
+ const ta=document.createElement('textarea');
+ ta.value=text;ta.setAttribute('readonly','');ta.style.position='fixed';ta.style.left='-9999px';ta.style.top='0';
+ document.body.appendChild(ta);ta.select();ta.setSelectionRange(0,ta.value.length);
+ let ok=false;try{ok=document.execCommand('copy')}catch(e){ok=false}document.body.removeChild(ta);return ok;
+}
+function setHandoffStatus(kind,msg){
+ const el=document.getElementById('handoffStatus');if(!el)return;el.className='handoff-status show '+kind;el.innerHTML=msg;
+}
+async function continueToAIAdvisor(){
+ const handoff=buildAdvisorHandoffText();
+ const advisorTab=window.open('about:blank','_blank');
+ let copied=false;
+ try{
+  if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(handoff);copied=true}
+  else{copied=fallbackCopyText(handoff)}
+ }catch(err){copied=fallbackCopyText(handoff)}
+ if(advisorTab){advisorTab.location.href=AI_ADVISOR_URL}else{window.open(AI_ADVISOR_URL,'_blank','noopener')}
+ if(copied){setHandoffStatus('ok','✓ คัดลอกข้อความส่งต่อแล้ว · เมื่อ AI ที่ปรึกษาเปิดขึ้น ให้กด <strong>Ctrl+V</strong> แล้วส่งข้อความได้เลย')}
+ else{setHandoffStatus('warn','เปิด AI ที่ปรึกษาแล้ว แต่เบราว์เซอร์ไม่อนุญาตให้คัดลอกอัตโนมัติ · กด “ดูข้อความส่งต่อ” แล้วคัดลอกด้วยตนเอง')}
+}
+function previewAdvisorHandoff(){
+ const txt=buildAdvisorHandoffText();
+ const safe=txt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+ openModal('ข้อความส่งต่อไปยัง AI ที่ปรึกษา',`<p class="mini">คัดลอกข้อความนี้ แล้วนำไปวางใน AI ที่ปรึกษาได้ทันที</p><div class="inline-detail-body" style="white-space:pre-wrap;text-align:left;max-height:52vh;overflow:auto">${safe}</div><div class="actions" style="justify-content:center"><button class="btn" onclick="copyAdvisorHandoffFromPreview()">คัดลอกข้อความ</button></div>`);
+}
+async function copyAdvisorHandoffFromPreview(){
+ const txt=buildAdvisorHandoffText();let copied=false;
+ try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(txt);copied=true}else{copied=fallbackCopyText(txt)}}catch(e){copied=fallbackCopyText(txt)}
+ if(copied){closeModal();setHandoffStatus('ok','✓ คัดลอกข้อความส่งต่อแล้ว · กดปุ่มเปิด AI ที่ปรึกษา หรือเปิดลิงก์แล้วกด <strong>Ctrl+V</strong>')}
+}
+function restartGame(){if(confirm('เริ่มเล่นใหม่ตั้งแต่ต้นหรือไม่? ข้อมูลการเล่นรอบนี้จะถูกล้าง')){document.body.classList.remove('playing');location.reload()}}
+
+updateProgress();
+</script>
+</body>
+</html>
